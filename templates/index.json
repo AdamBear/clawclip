@@ -1,0 +1,42 @@
+[
+  {
+    "id": "daily-reporter",
+    "name": "自媒体日报助手",
+    "description": "每日自动汇总行业新闻，生成公众号/小红书风格的文案",
+    "category": "创作",
+    "icon": "📰",
+    "skills": ["web-search", "content-writer"]
+  },
+  {
+    "id": "email-assistant",
+    "name": "邮件助理",
+    "description": "自动分类邮件、草拟回复、提醒重要邮件",
+    "category": "效率",
+    "icon": "📧",
+    "skills": ["gmail", "calendar"]
+  },
+  {
+    "id": "customer-service",
+    "name": "客服值班",
+    "description": "自动回复常见问题，复杂问题标记转人工",
+    "category": "客服",
+    "icon": "💬",
+    "skills": ["knowledge-base", "message-router"]
+  },
+  {
+    "id": "code-reviewer",
+    "name": "代码审查助手",
+    "description": "PR 自动 review，生成改进建议和安全检查",
+    "category": "开发",
+    "icon": "🔍",
+    "skills": ["github", "code-analysis"]
+  },
+  {
+    "id": "schedule-manager",
+    "name": "日程管理",
+    "description": "日历事件提醒、会议纪要自动生成、日程冲突检测",
+    "category": "效率",
+    "icon": "📅",
+    "skills": ["calendar", "reminder"]
+  }
+]

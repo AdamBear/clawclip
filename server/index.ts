@@ -1,0 +1,49 @@
+import express, { type Request, type Response, type NextFunction } from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import statusRouter from './routes/status.js';
+import costRouter from './routes/cost.js';
+import skillsRouter from './routes/skills.js';
+import templatesRouter from './routes/templates.js';
+
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+app.use(express.json());
+
+// API 路由
+app.use('/api/status', statusRouter);
+app.use('/api/cost', costRouter);
+app.use('/api/skills', skillsRouter);
+app.use('/api/templates', templatesRouter);
+
+// API 404：未匹配的 /api/* 请求返回 JSON 错误而非 index.html
+app.all('/api/*', (_req, res) => {
+  res.status(404).json({ error: '接口不存在' });
+});
+
+// 生产环境：托管前端静态文件
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const webDist = path.resolve(__dirname, '..', 'web', 'dist');
+app.use(express.static(webDist));
+app.get('*', (_req, res) => {
+  const indexPath = path.join(webDist, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(200).send('虾片后端运行中。前端请执行 npm run dev:web 启动。');
+  }
+});
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('未捕获错误:', err.message);
+  if (!res.headersSent) {
+    res.status(500).json({ error: '服务器内部错误' });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`🍤 虾片已启动 → http://localhost:${PORT}`);
+});

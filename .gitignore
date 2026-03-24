@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+yarn.lock
+package-lock.json
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Cursor
+.cursor/
+.cursorignore
+.cursorindexingignore
+
+# Kiro
+.kiro/
+
+# Trae
+.trae/
+
+# Narrafork (internal planning)
+.narrafork/
+
+# Reference / archived projects (not ours, don't leak)
+_reference/
+resource/
+
+# Package artifacts
+*.tgz
+
+# Misc cache
+.cache/
+.temp/
+tmp/
