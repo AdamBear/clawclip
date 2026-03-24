@@ -266,8 +266,9 @@ export default function Landing({ onEnterDemo }: Props) {
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/[0.06] py-12 px-6 lg:px-16">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <img src="/luelan-logo.png" alt="掠蓝" className="h-10 w-auto -my-2 opacity-60" />
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-500">虾片</span>
+            <span className="text-xs text-slate-600">ClawClip</span>
           </div>
 
           <div className="flex items-center gap-6 text-sm text-slate-500">

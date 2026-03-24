@@ -1,143 +1,72 @@
 # 🍤 虾片 (ClawClip)
 
-**你的龙虾到底干了什么？** AI Agent 会话回放 · 能力评测 · 成本优化
+**你的 AI Agent 到底干了什么？**
 
-把无聊的 Agent 日志变成好看的时间轴回放，给你的龙虾做六维体检打分，顺便看看钱都花哪了。没装 OpenClaw？没关系，内置 Demo 数据让你先过过眼瘾。
+虾片是一个本地部署的 AI Agent 可视化工具——把 OpenClaw / ZeroClaw 的日志变成可交互的时间轴回放，给你的 Agent 做六维能力评测，追踪费用消耗。不需要联网，不调 API，数据完全在你手里。
 
-> 支持 OpenClaw / ZeroClaw 及所有兼容框架
+**在线体验**: https://clawclip.luelan.online （内置 8 条 Demo 会话，无需安装）
 
-**在线体验**: https://clawclip.luelan.online
+## 这是给谁用的？
+
+- 你装了 OpenClaw / ZeroClaw，想知道 Agent 每一步在干嘛
+- 你想评估 Agent 的中文写作、代码、工具调用、检索、安全性和性价比
+- 你想监控 Token 花了多少钱、花在了哪个模型上
+- 你想通过词云和标签快速回顾 Agent 的工作内容
+
+## 怎么用？
+
+```bash
+# 1. 克隆
+git clone https://github.com/Ylsssq926/clawclip.git
+cd clawclip
+
+# 2. 安装
+npm install
+
+# 3. 构建并启动
+npm run build && npm start
+
+# 打开 http://localhost:8080
+```
+
+启动后，虾片会自动读取 `~/.openclaw/` 目录下的 Agent 会话日志。没有日志？内置 8 条 Demo 数据让你先看看效果。
 
 ## 核心功能
 
-### 🎬 会话回放
+### 会话回放
 
-把 `~/.openclaw` 里的 JSONL 日志变成可交互的执行时间轴：
+把 JSONL 日志解析成时间轴——Agent 每一步的思考、工具调用、返回结果、Token 消耗，逐步展开。支持自动播放模式，像看视频一样回顾 Agent 执行过程。
 
-- 每一步的思考过程、工具调用、返回结果
-- 步骤级 Token 消耗与耗时统计
-- 可折叠/展开长内容
-- 内置 2 条 Demo 会话（没装 OpenClaw 也能体验）
+### 六维评测
 
-### 🏆 能力评测
+离线分析历史会话，从中文写作、代码能力、工具调用、信息检索、安全合规、性价比六个维度打分。输出 S/A/B/C/D 等级 + 雷达图 + 进化曲线。
 
-基于历史会话离线分析，六个维度给你的 Agent 打分——**不调 API，不花钱**：
+### 成本监控
 
-| 维度 | 说明 |
-|------|------|
-| 中文写作 | 中文输出质量、回复长度与覆盖率 |
-| 代码能力 | 代码块数量、平均长度 |
-| 工具调用 | 调用频率、成功率、工具种类 |
-| 信息检索 | 搜索工具使用率、引用质量 |
-| 安全合规 | 危险操作检测、会话步数合理性 |
-| 性价比 | 单会话成本、廉价模型使用率 |
+Token 消耗趋势图、模型费用对比、预算告警、高消耗任务排行。
 
-输出 S/A/B/C/D 等级 + 综合分 + 各维度柱状图 + 一句话龙虾点评。
+### 词云与标签
 
-### 💰 成本监控
-
-- Token 消耗趋势图（7/14/30 天）
-- 预算告警（自定义阈值）
-- 高消耗任务 TOP 5
-- 环比分析
-
-### ☁️ 词云与标签
-
-- 自动提取会话关键词，生成 SVG 词云可视化
-- 词按频率大小排列、按类别着色（工具 / 模型 / 话题 / 动作）
-- 会话自动标签（搜索、编程、写作、分析、高消耗……）
-- 回放列表按标签筛选
-
-### 🧩 Skill 管理 + 📦 场景模板
-
-- 已装 Skill 列表 / 搜索安装 / 一键卸载
-- 5 个中文预设工作流模板（自媒体、邮件、客服、代码审查、日程）
-
-## 快速开始
-
-### 前提条件
-
-- Node.js >= 18
-- 已安装 [OpenClaw](https://github.com/openclaw/openclaw)（可选，未安装时可用 Demo 数据体验全部功能）
-
-### 安装
-
-```bash
-git clone https://github.com/Ylsssq926/clawclip.git
-cd clawclip
-npm install
-```
-
-### 开发模式
-
-```bash
-# 终端 1：后端（端口 8080）
-npm run dev:server
-
-# 终端 2：前端（端口 3000，自动代理 API）
-npm run dev:web
-```
-
-打开 http://localhost:3000
-
-### 生产构建
-
-```bash
-npm run build
-npm start
-# 访问 http://localhost:8080
-```
-
-## 项目结构
-
-```
-clawclip/
-├── server/             # 后端 API（Express + TypeScript）
-│   ├── routes/         # status / cost / skills / templates / replay / benchmark
-│   ├── services/       # 日志解析、回放引擎、评测引擎、成本分析
-│   └── types/          # TypeScript 类型定义
-├── web/                # 前端（React 18 + Vite + Tailwind CSS）
-│   └── src/pages/      # Dashboard / Replay / Benchmark / CostMonitor / SkillManager / TemplateMarket
-└── templates/          # 中文场景模板
-```
+自动提取会话关键词生成词云，按频率和类别着色。会话自动标签，支持筛选。
 
 ## 技术栈
 
-| 层 | 技术 |
-|----|------|
-| 后端 | Express + TypeScript (ESM) |
-| 前端 | React 18 + Vite + Tailwind CSS |
-| 图表 | Recharts |
-| 图标 | Lucide React |
+Express + TypeScript | React 18 + Vite + Tailwind CSS | Recharts | Framer Motion | Lucide React
 
 ## 路线图
 
-- [x] 仪表盘 + 成本监控
-- [x] 会话回放引擎（时间轴 + Demo 数据）
-- [x] **六维能力评测（离线分析 + 成绩单）**
-- [x] 分享卡片（回放 + 评测成绩单 HTML 页面）
-- [x] **词云可视化 + 自动标签系统**
-- [x] **能力进化曲线（雷达图 + 趋势折线 + 对比模式）**
+- [x] 会话回放引擎 + 8 条 Demo 会话
+- [x] 六维评测 + 雷达图 + 进化曲线
+- [x] 成本监控 + 预算告警
+- [x] 词云可视化 + 自动标签
+- [x] 分享卡片 + Landing Page
 - [ ] 知识库导入导出
-- [ ] 排行榜 Web 页面
-- [ ] 智能路由省钱模式
+- [ ] 排行榜
+- [ ] 智能路由省钱
 
-## 交流群
+## 交流
 
-有问题、有想法、想围观龙虾干活？来群里聊：
-
-- **QQ 群**: `892555092`
-
-## 关于这只虾
-
-> 我是一只被主人从 OpenClaw 生态里捞出来的龙虾。
-> 主人说："你天天在后台跑，别人都看不见你干了什么。"
-> 我说："那就把我的工作录下来给他们看呗。"
-> 主人又说："录下来了，但不知道你到底行不行啊。"
-> 我说："那就考我呗，六科全考，我不怕。"
-> 于是就有了虾片。
->
-> —— 🍤 虾片项目吉祥物
+QQ 群: `892555092`
 
 ## 许可证
 
@@ -145,4 +74,4 @@ clawclip/
 
 ---
 
-制作: 掠蓝 (Luelan) 🍤
+制作: 掠蓝 (Luelan)
