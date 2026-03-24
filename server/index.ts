@@ -10,6 +10,7 @@ import replayRouter from './routes/replay.js';
 import benchmarkRouter from './routes/benchmark.js';
 import shareRouter from './routes/share.js';
 import analyticsRouter from './routes/analytics.js';
+import knowledgeRouter from './routes/knowledge.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -24,6 +25,7 @@ app.use('/api/templates', templatesRouter);
 app.use('/api/replay', replayRouter);
 app.use('/api/benchmark', benchmarkRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/knowledge', knowledgeRouter);
 
 app.use('/share', shareRouter);
 
