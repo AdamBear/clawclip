@@ -4,7 +4,8 @@ import { ArrowLeft, Play, Pause, Brain, Wrench, CheckCircle, Bot, MessageSquare,
 import FadeIn from '../components/ui/FadeIn'
 import GlowCard from '../components/ui/GlowCard'
 import { cn } from '../lib/cn'
-import { useI18n, type Locale } from '../lib/i18n'
+import { useI18n } from '../lib/i18n'
+import { formatDuration, formatRelativeTime, sessionMetaSubtitle } from '../lib/formatSession'
 
 const TAG_ALL = '__all__'
 
@@ -32,22 +33,6 @@ interface SessionMeta {
 
 function replaySessionTitle(m: SessionMeta, untitled: string): string {
   return (m.sessionLabel?.trim() || m.summary?.trim() || '').slice(0, 120) || untitled
-}
-
-function replaySessionSubtitle(m: SessionMeta, locale: Locale): string | null {
-  const parts: string[] = []
-  if (m.storeChannel?.trim()) parts.push(m.storeChannel.trim())
-  const prov = m.storeProvider?.trim()
-  if (prov && prov !== m.storeChannel?.trim()) parts.push(prov)
-  if (m.storeModel?.trim()) parts.push(m.storeModel.trim())
-  if (typeof m.storeContextTokens === 'number' && m.storeContextTokens > 0) {
-    parts.push(
-      locale === 'en'
-        ? `~${m.storeContextTokens.toLocaleString()} ctx tok`
-        : `~${m.storeContextTokens.toLocaleString()} 上下文 token`,
-    )
-  }
-  return parts.length ? parts.join(' · ') : null
 }
 
 function dataSourceBadge(src?: string): string {
@@ -84,39 +69,6 @@ interface TagInfo {
   tag: string
   sessionCount: number
   color: string
-}
-
-function formatDuration(ms: number, locale: Locale): string {
-  const sec = Math.floor(ms / 1000)
-  if (locale === 'en') {
-    if (sec < 60) return `${sec}s`
-    return `${Math.floor(sec / 60)}m ${sec % 60}s`
-  }
-  if (sec < 60) return `${sec}秒`
-  return `${Math.floor(sec / 60)}分${sec % 60}秒`
-}
-
-function formatRelativeTime(dateStr: string, locale: Locale): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const min = Math.floor(diff / 60000)
-  if (locale === 'en') {
-    if (min < 1) return 'just now'
-    if (min < 60) return `${min}m ago`
-    const hours = Math.floor(min / 60)
-    if (hours < 24) return `${hours}h ago`
-    const days = Math.floor(hours / 24)
-    if (days === 1) return 'yesterday'
-    if (days < 30) return `${days}d ago`
-    return new Date(dateStr).toLocaleDateString('en-US')
-  }
-  if (min < 1) return '刚刚'
-  if (min < 60) return `${min}分钟前`
-  const hours = Math.floor(min / 60)
-  if (hours < 24) return `${hours}小时前`
-  const days = Math.floor(hours / 24)
-  if (days === 1) return '昨天'
-  if (days < 30) return `${days}天前`
-  return new Date(dateStr).toLocaleDateString('zh-CN')
 }
 
 function formatStepOffset(stepTime: string, startTime: string): string {
@@ -504,8 +456,8 @@ export default function Replay() {
                   {dataSourceBadge(replay.meta.dataSource)}
                 </span>
               </div>
-              {replaySessionSubtitle(replay.meta, locale) && (
-                <p className="text-xs text-slate-500 mb-2">{replaySessionSubtitle(replay.meta, locale)}</p>
+              {sessionMetaSubtitle(replay.meta, locale) && (
+                <p className="text-xs text-slate-500 mb-2">{sessionMetaSubtitle(replay.meta, locale)}</p>
               )}
               {replay.meta.sessionKey && (
                 <p className="text-[10px] text-slate-600 font-mono truncate mb-3" title={replay.meta.sessionKey}>
@@ -681,7 +633,7 @@ export default function Replay() {
       {!loading && !error && filteredSessions.length > 0 && (
         <div className="space-y-3">
           {filteredSessions.map((session, index) => {
-            const lineSub = replaySessionSubtitle(session, locale)
+            const lineSub = sessionMetaSubtitle(session, locale)
             return (
             <FadeIn key={session.id} delay={Math.min(index * 0.05, 0.5)}>
               <GlowCard className="w-full hover:border-accent/30">

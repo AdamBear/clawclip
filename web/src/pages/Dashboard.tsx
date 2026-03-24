@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import type { Tab } from '../App'
 import WordCloud, { type KeywordItem } from '../components/WordCloud'
 import { useI18n, type Locale } from '../lib/i18n'
+import { formatDuration, formatRelativeTime, sessionMetaSubtitle } from '../lib/formatSession'
 import { cn } from '../lib/cn'
 
 interface LobsterDataRootStatus {
@@ -69,57 +70,8 @@ function sessionListTitle(s: SessionMeta, locale: Locale): string {
   return locale === 'en' ? 'Session' : '会话'
 }
 
-function sessionListSubtitle(s: SessionMeta, locale: Locale): string | null {
-  const parts: string[] = []
-  if (s.storeChannel?.trim()) parts.push(s.storeChannel.trim())
-  const prov = s.storeProvider?.trim()
-  if (prov && prov !== s.storeChannel?.trim()) parts.push(prov)
-  if (s.storeModel?.trim()) parts.push(s.storeModel.trim())
-  if (typeof s.storeContextTokens === 'number' && s.storeContextTokens > 0) {
-    parts.push(
-      locale === 'en'
-        ? `~${s.storeContextTokens.toLocaleString()} ctx tok`
-        : `~${s.storeContextTokens.toLocaleString()} 上下文 token`,
-    )
-  }
-  return parts.length ? parts.join(' · ') : null
-}
-
 interface Props {
   onNavigate: (tab: Tab) => void
-}
-
-function formatRelativeTime(dateStr: string, locale: Locale): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const min = Math.floor(diff / 60000)
-  if (locale === 'en') {
-    if (min < 1) return 'just now'
-    if (min < 60) return `${min}m ago`
-    const hours = Math.floor(min / 60)
-    if (hours < 24) return `${hours}h ago`
-    const days = Math.floor(hours / 24)
-    if (days === 1) return 'yesterday'
-    if (days < 30) return `${days}d ago`
-    return new Date(dateStr).toLocaleDateString('en-US')
-  }
-  if (min < 1) return '刚刚'
-  if (min < 60) return `${min}分钟前`
-  const hours = Math.floor(min / 60)
-  if (hours < 24) return `${hours}小时前`
-  const days = Math.floor(hours / 24)
-  if (days === 1) return '昨天'
-  if (days < 30) return `${days}天前`
-  return new Date(dateStr).toLocaleDateString('zh-CN')
-}
-
-function formatDuration(ms: number, locale: Locale): string {
-  const sec = Math.floor(ms / 1000)
-  if (locale === 'en') {
-    if (sec < 60) return `${sec}s`
-    return `${Math.floor(sec / 60)}m ${sec % 60}s`
-  }
-  if (sec < 60) return `${sec}秒`
-  return `${Math.floor(sec / 60)}分${sec % 60}秒`
 }
 
 export default function Dashboard({ onNavigate }: Props) {
@@ -402,7 +354,7 @@ export default function Dashboard({ onNavigate }: Props) {
           ) : (
             <div className="space-y-2">
               {sessions.slice(0, 5).map(s => {
-                const sub = sessionListSubtitle(s, locale)
+                const sub = sessionMetaSubtitle(s, locale)
                 return (
                 <button
                   key={s.id}
