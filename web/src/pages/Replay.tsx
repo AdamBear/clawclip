@@ -76,9 +76,9 @@ function formatStepOffset(stepTime: string, startTime: string): string {
 const STEP_CONFIG: Record<string, { color: string; border: string; bg: string; icon: typeof Brain; label: string }> = {
   user:        { color: 'text-blue-400',   border: 'border-l-blue-500',   bg: 'bg-blue-500/10',   icon: MessageSquare, label: '用户' },
   thinking:    { color: 'text-purple-400', border: 'border-l-purple-500', bg: 'bg-purple-500/10', icon: Brain,          label: '思考' },
-  tool_call:   { color: 'text-orange-400', border: 'border-l-orange-500', bg: 'bg-accent-dim',     icon: Wrench,         label: '工具调用' },
+  tool_call:   { color: 'text-cyan-400',   border: 'border-l-cyan-500',   bg: 'bg-cyan-500/10',   icon: Wrench,         label: '工具调用' },
   tool_result: { color: 'text-green-400',  border: 'border-l-green-500',  bg: 'bg-green-500/10',  icon: CheckCircle,    label: '工具结果' },
-  response:    { color: 'text-orange-400', border: 'border-l-orange-500', bg: 'bg-accent-dim',     icon: Bot,            label: '回复' },
+  response:    { color: 'text-blue-400',   border: 'border-l-blue-500',   bg: 'bg-blue-500/10',   icon: Bot,            label: '回复' },
   system:      { color: 'text-slate-400',  border: 'border-l-slate-500',  bg: 'bg-slate-500/10',  icon: Settings,       label: '系统' },
 }
 

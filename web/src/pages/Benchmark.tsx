@@ -57,7 +57,7 @@ const DIMENSION_ICONS: Record<string, typeof Pen> = {
 const DIMENSION_COLORS: Record<string, string> = {
   writing: 'text-pink-400',
   coding: 'text-blue-400',
-  toolUse: 'text-orange-400',
+  toolUse: 'text-cyan-400',
   search: 'text-cyan-400',
   safety: 'text-green-400',
   costEfficiency: 'text-yellow-400',

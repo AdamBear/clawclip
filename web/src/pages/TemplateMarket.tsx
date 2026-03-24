@@ -37,10 +37,7 @@ export default function TemplateMarket() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       })
-      if (!res.ok) {
-        alert('导入失败，请重试')
-        return
-      }
+      if (!res.ok) { alert('导入失败，请重试'); return }
       const result = await res.json()
       if (result.success) {
         setApplied(prev => new Set(prev).add(id))
@@ -59,14 +56,15 @@ export default function TemplateMarket() {
       <h2 className="text-2xl font-bold mb-2">场景模板</h2>
       <p className="text-slate-400 text-sm mb-6">预设的中文工作流，一键导入到你的龙虾</p>
 
-      {/* 分类筛选 */}
       <div className="flex gap-2 mb-6">
         {CATEGORIES.map(cat => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
-            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-              category === cat ? 'bg-orange-500 text-white' : 'bg-[#1e293b] text-slate-400 hover:text-white'
+            className={`px-4 py-2 rounded-xl text-sm transition-all ${
+              category === cat
+                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/15'
+                : 'card text-slate-400 hover:text-white'
             }`}
           >
             {cat}
@@ -74,15 +72,14 @@ export default function TemplateMarket() {
         ))}
       </div>
 
-      {/* 模板卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {!loading && filtered.map(template => (
-          <div key={template.id} className="bg-[#1e293b] rounded-xl p-6 border border-[#334155] hover:border-orange-500/30 transition-colors">
+          <div key={template.id} className="card-blue p-6 hover:border-blue-400/25 transition-all">
             <div className="flex items-start justify-between mb-3">
               <span className="text-3xl">{template.icon}</span>
-              <span className="text-xs px-2 py-1 bg-[#334155] rounded-full text-slate-400">{template.category}</span>
+              <span className="text-xs px-2 py-1 bg-white/[0.05] rounded-full text-slate-400 border border-white/[0.06]">{template.category}</span>
             </div>
-            <h3 className="font-semibold text-lg mb-2">{template.name}</h3>
+            <h3 className="font-semibold text-lg mb-2 text-white">{template.name}</h3>
             <p className="text-sm text-slate-400 mb-4 leading-relaxed">{template.description}</p>
             <div className="flex flex-wrap gap-1 mb-4">
               {template.skills.map(s => (
@@ -92,10 +89,10 @@ export default function TemplateMarket() {
             <button
               onClick={() => handleApply(template.id)}
               disabled={applied.has(template.id) || applying === template.id}
-              className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+              className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                 applied.has(template.id)
-                  ? 'bg-green-500/10 text-green-400 cursor-default'
-                  : 'bg-orange-500 hover:bg-orange-600 text-white'
+                  ? 'bg-emerald-500/10 text-emerald-400 cursor-default'
+                  : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-blue-500/20'
               }`}
             >
               {applied.has(template.id) ? (
@@ -111,13 +108,11 @@ export default function TemplateMarket() {
       </div>
 
       {!loading && filtered.length === 0 && (
-        <div className="text-center py-12 text-slate-500">
-          <p>该分类暂无模板</p>
-        </div>
+        <div className="text-center py-12 text-slate-500"><p>该分类暂无模板</p></div>
       )}
       {loading && (
-        <div className="text-center py-12 text-slate-500">
-          <p>加载中...</p>
+        <div className="space-y-4">
+          {[1,2,3].map(i => <div key={i} className="skeleton h-48 w-full" />)}
         </div>
       )}
     </div>
