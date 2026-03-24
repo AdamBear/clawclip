@@ -56,7 +56,11 @@ export default function Landing({ onEnterDemo }: Props) {
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 lg:px-16 py-5 max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
-          <img src="/luelan-logo.png" alt="掠蓝" className="h-14 w-auto -my-3 object-contain" />
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🍤</span>
+            <span className="text-lg font-bold text-white">虾片</span>
+            <span className="text-xs text-slate-500">ClawClip</span>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <a
