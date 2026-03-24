@@ -65,3 +65,8 @@
 - 结构：npm workspaces，server/ + web/
 - 目标用户：OpenClaw / ZeroClaw 等 AI Agent 框架的中文用户
 - 用户是产品经理，不是技术人员，不要让用户判断技术细节是否足够
+
+## 兼容与质量门禁
+
+- 发版或合并前执行：`npm run check`（双端 `tsc --noEmit`）
+- OpenClaw 目录/转写以官方为准；大改前对照 https://docs.openclaw.ai/llms.txt 中 session、environment 相关页

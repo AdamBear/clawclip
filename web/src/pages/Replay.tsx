@@ -12,6 +12,11 @@ interface SessionMeta {
   sessionLabel?: string
   sessionKey?: string
   storeUpdatedAt?: number
+  storeContextTokens?: number
+  storeTotalTokens?: number
+  storeModel?: string
+  storeChannel?: string
+  storeProvider?: string
   startTime: string
   endTime: string
   durationMs: number
@@ -24,6 +29,18 @@ interface SessionMeta {
 
 function replaySessionTitle(m: SessionMeta): string {
   return (m.sessionLabel?.trim() || m.summary?.trim() || '').slice(0, 120) || '无标题会话'
+}
+
+function replaySessionSubtitle(m: SessionMeta): string | null {
+  const parts: string[] = []
+  if (m.storeChannel?.trim()) parts.push(m.storeChannel.trim())
+  const prov = m.storeProvider?.trim()
+  if (prov && prov !== m.storeChannel?.trim()) parts.push(prov)
+  if (m.storeModel?.trim()) parts.push(m.storeModel.trim())
+  if (typeof m.storeContextTokens === 'number' && m.storeContextTokens > 0) {
+    parts.push(`~${m.storeContextTokens.toLocaleString()} 上下文 token`)
+  }
+  return parts.length ? parts.join(' · ') : null
 }
 
 function dataSourceBadge(src?: string): string {
@@ -442,6 +459,9 @@ export default function Replay() {
                   {dataSourceBadge(replay.meta.dataSource)}
                 </span>
               </div>
+              {replaySessionSubtitle(replay.meta) && (
+                <p className="text-xs text-slate-500 mb-2">{replaySessionSubtitle(replay.meta)}</p>
+              )}
               {replay.meta.sessionKey && (
                 <p className="text-[10px] text-slate-600 font-mono truncate mb-3" title={replay.meta.sessionKey}>
                   {replay.meta.sessionKey}
@@ -614,7 +634,9 @@ export default function Replay() {
 
       {!loading && !error && filteredSessions.length > 0 && (
         <div className="space-y-3">
-          {filteredSessions.map((session, index) => (
+          {filteredSessions.map((session, index) => {
+            const lineSub = replaySessionSubtitle(session)
+            return (
             <FadeIn key={session.id} delay={Math.min(index * 0.05, 0.5)}>
               <GlowCard className="w-full hover:border-accent/30">
                 <button
@@ -623,9 +645,14 @@ export default function Replay() {
                   className="w-full rounded-xl p-5 text-left group bg-transparent border-0 text-inherit cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-2 gap-2">
-                    <h3 className="font-medium text-white group-hover:text-accent transition-colors truncate pr-4 min-w-0">
-                      {replaySessionTitle(session)}
-                    </h3>
+                    <div className="min-w-0 pr-4">
+                      <h3 className="font-medium text-white group-hover:text-accent transition-colors truncate">
+                        {replaySessionTitle(session)}
+                      </h3>
+                      {lineSub && (
+                        <p className="text-[10px] text-slate-600 truncate mt-0.5">{lineSub}</p>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-300/90 border border-blue-500/20 font-medium">
                         {dataSourceBadge(session.dataSource)}
@@ -664,7 +691,8 @@ export default function Replay() {
                 </button>
               </GlowCard>
             </FadeIn>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

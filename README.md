@@ -29,7 +29,17 @@ npm run build && npm start
 # 打开 http://localhost:8080
 ```
 
-启动后，虾片会自动读取 `~/.openclaw/` 目录下的 Agent 会话日志。没有日志？内置 8 条 Demo 数据让你先看看效果。
+### 质量检查（发版 / 提 PR 前）
+
+```bash
+npm run check
+```
+
+会对 `server` 与 `web` 分别执行 `tsc --noEmit`（类型检查，不产出文件）。
+
+**兼容维护**：大版本迭代前可扫 [OpenClaw 文档索引](https://docs.openclaw.ai/llms.txt) 里 session、environment、Gateway 相关页，核对目录与转写格式是否变化。
+
+启动后，虾片会自动读取 `~/.openclaw/`（及 `OPENCLAW_STATE_DIR`、额外配置的目录）下的 Agent 会话。没有 JSONL？内置 8 条 Demo 数据让你先看效果。若某框架只用 SQLite 等非 JSONL 存储，仪表盘会显示**生态提示**，避免误以为虾片坏了。
 
 ## 核心功能
 

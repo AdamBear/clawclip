@@ -15,6 +15,13 @@ interface LobsterDataRootStatus {
   skillsCount: number
 }
 
+interface EcosystemNote {
+  severity: 'info' | 'warn'
+  rootId?: string
+  messageZh: string
+  messageEn: string
+}
+
 interface StatusData {
   running: boolean
   version: string
@@ -24,6 +31,7 @@ interface StatusData {
   dataRoots?: LobsterDataRootStatus[]
   totalSessionFiles?: number
   hasRealSessionData?: boolean
+  ecosystemNotes?: EcosystemNote[]
 }
 
 interface CostSummary {
@@ -39,6 +47,11 @@ interface SessionMeta {
   sessionLabel?: string
   sessionKey?: string
   storeUpdatedAt?: number
+  storeContextTokens?: number
+  storeTotalTokens?: number
+  storeModel?: string
+  storeChannel?: string
+  storeProvider?: string
   startTime: string
   durationMs: number
   totalCost: number
@@ -54,6 +67,22 @@ function sessionListTitle(s: SessionMeta, locale: Locale): string {
   const t = (fromStore || fromTranscript || '').slice(0, 80)
   if (t) return t
   return locale === 'en' ? 'Session' : '会话'
+}
+
+function sessionListSubtitle(s: SessionMeta, locale: Locale): string | null {
+  const parts: string[] = []
+  if (s.storeChannel?.trim()) parts.push(s.storeChannel.trim())
+  const prov = s.storeProvider?.trim()
+  if (prov && prov !== s.storeChannel?.trim()) parts.push(prov)
+  if (s.storeModel?.trim()) parts.push(s.storeModel.trim())
+  if (typeof s.storeContextTokens === 'number' && s.storeContextTokens > 0) {
+    parts.push(
+      locale === 'en'
+        ? `~${s.storeContextTokens.toLocaleString()} ctx tok`
+        : `~${s.storeContextTokens.toLocaleString()} 上下文 token`,
+    )
+  }
+  return parts.length ? parts.join(' · ') : null
 }
 
 interface Props {
@@ -247,6 +276,23 @@ export default function Dashboard({ onNavigate }: Props) {
               </div>
             </div>
           )}
+          {(status.ecosystemNotes?.length ?? 0) > 0 && (
+            <div className="mt-2 pt-2 border-t border-white/[0.06]">
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1.5">
+                {locale === 'en' ? 'Ecosystem notes' : '生态与存储提示'}
+              </p>
+              <ul className="space-y-1.5 text-[11px] text-slate-500 leading-snug">
+                {status.ecosystemNotes!.map((n, i) => (
+                  <li
+                    key={`${n.rootId ?? 'note'}-${i}`}
+                    className={n.severity === 'warn' ? 'text-amber-200/85' : undefined}
+                  >
+                    {locale === 'en' ? n.messageEn : n.messageZh}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
@@ -355,7 +401,9 @@ export default function Dashboard({ onNavigate }: Props) {
             <p className="text-xs text-slate-600 py-8 text-center">{locale === 'en' ? 'No sessions yet' : '暂无会话记录'}</p>
           ) : (
             <div className="space-y-2">
-              {sessions.slice(0, 5).map(s => (
+              {sessions.slice(0, 5).map(s => {
+                const sub = sessionListSubtitle(s, locale)
+                return (
                 <button
                   key={s.id}
                   onClick={() => onNavigate('replay')}
@@ -368,6 +416,9 @@ export default function Dashboard({ onNavigate }: Props) {
                     <p className="text-sm text-slate-300 truncate group-hover:text-white transition-colors">
                       {sessionListTitle(s, locale).slice(0, 50)}
                     </p>
+                    {sub && (
+                      <p className="text-[10px] text-slate-600 truncate mt-0.5">{sub}</p>
+                    )}
                     <div className="flex items-center gap-2 text-[11px] text-slate-600 mt-0.5">
                       <span>{s.agentName}</span>
                       <span>·</span>
@@ -378,7 +429,8 @@ export default function Dashboard({ onNavigate }: Props) {
                   </div>
                   <span className="text-xs text-cyan-400/80 font-mono shrink-0">¥{s.totalCost.toFixed(3)}</span>
                 </button>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

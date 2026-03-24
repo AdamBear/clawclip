@@ -40,6 +40,17 @@ function reviveMeta(raw: Record<string, unknown>): SessionMeta | null {
       typeof raw.storeUpdatedAt === 'number' && Number.isFinite(raw.storeUpdatedAt)
         ? raw.storeUpdatedAt
         : undefined,
+    storeContextTokens:
+      typeof raw.storeContextTokens === 'number' && Number.isFinite(raw.storeContextTokens)
+        ? raw.storeContextTokens
+        : undefined,
+    storeTotalTokens:
+      typeof raw.storeTotalTokens === 'number' && Number.isFinite(raw.storeTotalTokens)
+        ? raw.storeTotalTokens
+        : undefined,
+    storeModel: typeof raw.storeModel === 'string' ? raw.storeModel : undefined,
+    storeChannel: typeof raw.storeChannel === 'string' ? raw.storeChannel : undefined,
+    storeProvider: typeof raw.storeProvider === 'string' ? raw.storeProvider : undefined,
   };
 }
 

@@ -17,6 +17,16 @@ export interface SessionMeta {
   sessionKey?: string;
   /** sessions.json 的 updatedAt（ms），用于列表排序贴近 Gateway */
   storeUpdatedAt?: number;
+  /** sessions.json：Gateway 侧估算的上下文 token */
+  storeContextTokens?: number;
+  /** sessions.json：store 内统计的总 token（若有） */
+  storeTotalTokens?: number;
+  /** sessions.json：模型或 modelOverride */
+  storeModel?: string;
+  /** 通道/表面：lastChannel、channel、origin 等 */
+  storeChannel?: string;
+  /** 提供方：origin.provider 等 */
+  storeProvider?: string;
 }
 
 export interface SessionStep {

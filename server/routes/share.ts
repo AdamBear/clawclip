@@ -213,12 +213,25 @@ function footerBlock(): string {
   return `<div class="footer">在 ClawClip 查看完整回放 → <a href="https://github.com/Ylsssq926/clawclip" rel="noopener noreferrer">github.com/Ylsssq926/clawclip</a></div>`;
 }
 
+function replayMetaSubtitle(meta: SessionReplay['meta']): string {
+  const parts: string[] = [];
+  if (typeof meta.storeChannel === 'string' && meta.storeChannel.trim()) parts.push(meta.storeChannel.trim());
+  const prov = typeof meta.storeProvider === 'string' ? meta.storeProvider.trim() : '';
+  if (prov && prov !== meta.storeChannel?.trim()) parts.push(prov);
+  if (typeof meta.storeModel === 'string' && meta.storeModel.trim()) parts.push(meta.storeModel.trim());
+  if (typeof meta.storeContextTokens === 'number' && meta.storeContextTokens > 0) {
+    parts.push(`~${meta.storeContextTokens.toLocaleString()} ctx tok`);
+  }
+  return parts.join(' · ');
+}
+
 function renderReplayHtml(replay: SessionReplay): string {
   const { meta, steps } = replay;
   const headline =
     (typeof meta.sessionLabel === 'string' && meta.sessionLabel.trim()) ||
     (typeof meta.summary === 'string' && meta.summary.trim()) ||
     '（无摘要）';
+  const sub = replayMetaSubtitle(meta);
   const models = meta.modelUsed?.length ? meta.modelUsed : [];
   const badgeAgent = `<span class="badge">${escapeHtml(meta.agentName || 'Agent')}</span>`;
   const badgeModels = models
@@ -242,6 +255,7 @@ function renderReplayHtml(replay: SessionReplay): string {
       </div>
     </div>
     <p class="summary">${escapeHtml(headline)}</p>
+    ${sub ? `<p class="muted" style="font-size:12px;margin-top:-6px;margin-bottom:10px">${escapeHtml(sub)}</p>` : ''}
     <div class="badges">${badgeAgent}${badgeModels}</div>
     <div class="metrics">
       <div class="metric"><div class="metric-label">步骤数</div><div class="metric-value">${meta.stepCount}</div></div>

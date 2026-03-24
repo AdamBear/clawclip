@@ -9,6 +9,7 @@ import {
   getPrimaryLobsterHome,
   getSpawnEnvWithOpenclawState,
 } from './agent-data-root.js';
+import { buildEcosystemNotes } from './ecosystem-hints.js';
 import { sessionParser } from './session-parser.js';
 
 const execFileAsync = promisify(execFile);
@@ -121,6 +122,7 @@ export class OpenClawBridge {
 
     const skills = await this.getInstalledSkills();
     const skillCount = skills.length;
+    const ecosystemNotes = buildEcosystemNotes(dataRoots);
 
     return {
       running,
@@ -133,6 +135,7 @@ export class OpenClawBridge {
       dataRoots,
       totalSessionFiles: counts.total,
       hasRealSessionData,
+      ecosystemNotes,
     };
   }
 

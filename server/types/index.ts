@@ -81,6 +81,14 @@ export interface LobsterDataRootStatus {
   skillsCount: number;
 }
 
+/** 生态/存储形态提示（无 JSONL、发现 DB 等），便于长期兼容多框架 */
+export interface EcosystemNote {
+  severity: 'info' | 'warn';
+  rootId?: string;
+  messageZh: string;
+  messageEn: string;
+}
+
 export interface OpenClawStatus {
   running: boolean;
   version: string;
@@ -94,6 +102,8 @@ export interface OpenClawStatus {
   totalSessionFiles: number;
   /** 是否已读取到真实会话 JSONL（非内置 Demo） */
   hasRealSessionData: boolean;
+  /** 存储形态与后续适配说明（双语） */
+  ecosystemNotes: EcosystemNote[];
 }
 
 export interface SkillInfo {

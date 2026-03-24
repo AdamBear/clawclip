@@ -77,6 +77,34 @@ function updatedAtMs(e: Record<string, unknown>): number | undefined {
   return undefined;
 }
 
+function finiteNumber(v: unknown): number | undefined {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  return undefined;
+}
+
+function storeModelFromEntry(e: Record<string, unknown>): string {
+  const m = e.model ?? e.modelOverride;
+  if (typeof m === 'string' && m.trim()) return m.trim();
+  return '';
+}
+
+function channelFromEntry(e: Record<string, unknown>): string {
+  const a = e.lastChannel ?? e.channel;
+  if (typeof a === 'string' && a.trim()) return a.trim();
+  return '';
+}
+
+function providerFromEntry(e: Record<string, unknown>): string {
+  const o = e.origin;
+  if (o && typeof o === 'object' && !Array.isArray(o)) {
+    const p = (o as Record<string, unknown>).provider;
+    if (typeof p === 'string' && p.trim()) return p.trim();
+    const s = (o as Record<string, unknown>).surface;
+    if (typeof s === 'string' && s.trim()) return s.trim();
+  }
+  return '';
+}
+
 /** 用 session store 补全展示名、sessionKey、最近活动时间（与 Gateway 列表更一致） */
 export function enrichSessionMetaFromStore(
   meta: SessionMeta,
@@ -96,4 +124,15 @@ export function enrichSessionMetaFromStore(
   meta.sessionKey = hit.sessionKey;
   const u = updatedAtMs(e);
   if (u != null) meta.storeUpdatedAt = u;
+
+  const ctx = finiteNumber(e.contextTokens);
+  if (ctx != null) meta.storeContextTokens = ctx;
+  const tt = finiteNumber(e.totalTokens);
+  if (tt != null) meta.storeTotalTokens = tt;
+  const sm = storeModelFromEntry(e);
+  if (sm) meta.storeModel = sm;
+  const ch = channelFromEntry(e);
+  if (ch) meta.storeChannel = ch;
+  const pr = providerFromEntry(e);
+  if (pr) meta.storeProvider = pr;
 }
