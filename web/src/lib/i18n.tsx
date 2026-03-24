@@ -97,6 +97,7 @@ const zh: Record<string, string> = {
   'replay.io.in': '输入',
   'replay.io.out': '输出',
   'replay.list.steps': '步',
+  'replay.list.tokensUnit': 'Token',
 }
 
 const en: Record<string, string> = {
@@ -194,6 +195,7 @@ const en: Record<string, string> = {
   'replay.io.in': 'Input',
   'replay.io.out': 'Output',
   'replay.list.steps': 'steps',
+  'replay.list.tokensUnit': 'tokens',
 }
 
 const ja: Record<string, string> = {
@@ -291,6 +293,7 @@ const ja: Record<string, string> = {
   'replay.io.in': '入力',
   'replay.io.out': '出力',
   'replay.list.steps': 'ステップ',
+  'replay.list.tokensUnit': 'トークン',
 }
 
 const ko: Record<string, string> = {
@@ -388,6 +391,7 @@ const ko: Record<string, string> = {
   'replay.io.in': '입력',
   'replay.io.out': '출력',
   'replay.list.steps': '단계',
+  'replay.list.tokensUnit': '토큰',
 }
 
 const es: Record<string, string> = {
@@ -485,6 +489,7 @@ const es: Record<string, string> = {
   'replay.io.in': 'Entrada',
   'replay.io.out': 'Salida',
   'replay.list.steps': 'pasos',
+  'replay.list.tokensUnit': 'tokens',
 }
 
 const fr: Record<string, string> = {
@@ -582,6 +587,7 @@ const fr: Record<string, string> = {
   'replay.io.in': 'Entrée',
   'replay.io.out': 'Sortie',
   'replay.list.steps': 'étapes',
+  'replay.list.tokensUnit': 'jetons',
 }
 
 const de: Record<string, string> = {
@@ -679,6 +685,7 @@ const de: Record<string, string> = {
   'replay.io.in': 'Eingabe',
   'replay.io.out': 'Ausgabe',
   'replay.list.steps': 'Schritte',
+  'replay.list.tokensUnit': 'Tokens',
 }
 
 const LOCALE_LABELS: Record<Locale, string> = {

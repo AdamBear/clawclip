@@ -147,7 +147,7 @@ export default function Dashboard({ onNavigate }: Props) {
     {
       label: '本月费用',
       value: `¥${(cost?.totalCost ?? 0).toFixed(2)}`,
-      sub: cost ? `${cost.totalTokens.toLocaleString()} tokens` : null,
+      sub: cost ? `${cost.totalTokens.toLocaleString()} ${t('replay.list.tokensUnit')}` : null,
       icon: DollarSign,
       variant: 'card-cyan',
       color: 'text-cyan-400',

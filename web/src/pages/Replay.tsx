@@ -146,7 +146,9 @@ function StepCard({ step, startTime }: { step: SessionStep; startTime: string })
               {step.model && <span className="text-xs text-slate-500">{step.model}</span>}
             </div>
             {tokens > 0 && (
-              <span className="text-xs text-slate-500">{tokens.toLocaleString()} tokens · ¥{step.cost.toFixed(4)}</span>
+              <span className="text-xs text-slate-500">
+                {tokens.toLocaleString()} {t('replay.list.tokensUnit')} · ¥{step.cost.toFixed(4)}
+              </span>
             )}
           </div>
           {step.content && (
@@ -682,7 +684,9 @@ export default function Replay() {
                       })}
                     </div>
                     <div className="flex items-center gap-3 text-xs shrink-0">
-                      <span className="text-blue-400">{session.totalTokens.toLocaleString()} tokens</span>
+                      <span className="text-blue-400">
+                        {session.totalTokens.toLocaleString()} {t('replay.list.tokensUnit')}
+                      </span>
                       <span className="text-accent font-medium">¥{session.totalCost.toFixed(4)}</span>
                     </div>
                   </div>

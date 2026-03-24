@@ -5,6 +5,7 @@ import FadeIn from '../components/ui/FadeIn'
 import GlowCard from '../components/ui/GlowCard'
 import AnimatedCounter from '../components/ui/AnimatedCounter'
 import { cn } from '../lib/cn'
+import { useI18n } from '../lib/i18n'
 
 interface DailyData {
   date: string
@@ -51,6 +52,7 @@ function CostSkeleton() {
 }
 
 export default function CostMonitor() {
+  const { t } = useI18n()
   const [daily, setDaily] = useState<DailyData[]>([])
   const [summary, setSummary] = useState<CostSummary | null>(null)
   const [days, setDays] = useState(7)
@@ -204,7 +206,9 @@ export default function CostMonitor() {
                     </div>
                     <div className="text-right">
                       <span className="text-accent font-medium">¥{task.cost.toFixed(4)}</span>
-                      <span className="text-xs text-slate-500 ml-2">{task.tokens.toLocaleString()} tokens</span>
+                      <span className="text-xs text-slate-500 ml-2">
+                        {task.tokens.toLocaleString()} {t('replay.list.tokensUnit')}
+                      </span>
                     </div>
                   </div>
                 ))}
