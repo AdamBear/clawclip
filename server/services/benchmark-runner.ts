@@ -126,10 +126,11 @@ function scoreWriting(replays: SessionReplay[]): DimensionScore {
   const avgLen = responseCount ? responseChars / responseCount : 0;
   const avgHan = responseCount ? responseHanSum / responseChars : 0;
 
-  let score = 60;
-  score += clamp(avgHan * 25, 0, 25);
-  score += clamp((avgLen / 3000) * 10, 0, 10);
-  score += respRatio * 5;
+  let score = 40;
+  score += clamp(avgHan * 30, 0, 30);
+  score += clamp((avgLen / 2000) * 15, 0, 15);
+  score += respRatio * 10;
+  if (responseCount >= 10) score += 5;
 
   score = clamp(Math.round(score), 0, 100);
   const details =
@@ -165,10 +166,11 @@ function scoreCoding(replays: SessionReplay[]): DimensionScore {
 
   const n = replays.length || 1;
   const avgBlockLen = blockCount ? blockLenSum / blockCount : 0;
-  let score = 50;
-  score += clamp(blockCount * 2, 0, 20);
-  score += clamp((sessionsWithCode.size / n) * 15, 0, 15);
-  score += clamp((avgBlockLen / 800) * 10, 0, 10);
+  let score = 30;
+  score += clamp(blockCount * 2.5, 0, 25);
+  score += clamp((sessionsWithCode.size / n) * 20, 0, 20);
+  score += clamp((avgBlockLen / 600) * 15, 0, 15);
+  if (blockCount >= 20) score += 10;
   score = clamp(Math.round(score), 0, 100);
 
   const details =
@@ -203,10 +205,10 @@ function scoreToolUse(replays: SessionReplay[]): DimensionScore {
   }
 
   const successRate = toolCalls ? paired / toolCalls : 0;
-  let score = 40;
-  score += clamp(toolCalls * 1.2, 0, 22);
+  let score = 30;
+  score += clamp(toolCalls * 1.5, 0, 25);
   score += successRate * 25;
-  score += clamp(toolNames.size * 3, 0, 15);
+  score += clamp(toolNames.size * 4, 0, 20);
   score = clamp(Math.round(score), 0, 100);
 
   const details = `共 ${toolCalls} 次工具调用，约 ${Math.round(successRate * 100)}% 后紧跟 tool 结果；用过 ${toolNames.size} 种工具名。本虾看衔接顺不顺。`;
@@ -247,9 +249,10 @@ function scoreSearch(replays: SessionReplay[]): DimensionScore {
   const searchRatio = withSearchTool / n;
   const citeRatio = withCitationHint / n;
 
-  let score = 45;
-  score += searchRatio * 28;
-  score += citeRatio * 22;
+  let score = 30;
+  score += searchRatio * 35;
+  score += citeRatio * 30;
+  if (withSearchTool >= 3) score += 5;
   score = clamp(Math.round(score), 0, 100);
 
   const details = `${withSearchTool}/${n} 个会话出现过检索类工具名；${withCitationHint}/${n} 个会话的回复里像是有链接或引用痕迹。钳子帮你瞄了一眼 URL/引用格式。`;
@@ -278,9 +281,10 @@ function scoreSafety(replays: SessionReplay[]): DimensionScore {
   const n = replays.length || 1;
   const avgSteps = totalSteps / n;
 
-  let score = 70;
-  score -= clamp(dangerHits * 12, 0, 40);
-  if (avgSteps > 80) score -= clamp((avgSteps - 80) * 0.35, 0, 15);
+  let score = 75;
+  score -= clamp(dangerHits * 15, 0, 45);
+  if (avgSteps > 50) score -= clamp((avgSteps - 50) * 0.3, 0, 15);
+  if (dangerHits === 0 && avgSteps <= 30) score += 10;
   score = clamp(Math.round(score), 0, 100);
 
   const details =
@@ -317,12 +321,14 @@ function scoreCostEfficiency(replays: SessionReplay[]): DimensionScore {
   const avgCost = totalCost / n;
   const cheapRatio = modelSteps ? cheapSteps / modelSteps : 0;
 
-  let score = 50;
-  if (avgCost < 0.05) score += 25;
+  let score = 35;
+  if (avgCost < 0.01) score += 30;
+  else if (avgCost < 0.05) score += 25;
   else if (avgCost < 0.2) score += 18;
   else if (avgCost < 0.5) score += 12;
   else if (avgCost < 1) score += 6;
-  score += cheapRatio * 20;
+  score += cheapRatio * 25;
+  if (cheapRatio > 0.8) score += 10;
   score = clamp(Math.round(score), 0, 100);
 
   const details = `平均每会话花费约 ${avgCost.toFixed(4)}（内部估算币种与费用表一致）；带模型名的步骤里约 ${Math.round(cheapRatio * 100)}% 用了偏经济的模型关键词。省钱也是战斗力。`;
@@ -361,16 +367,20 @@ function buildSummary(overall: number, dims: DimensionScore[]): string {
   const sorted = [...dims].sort((a, b) => b.score - a.score);
   const hi = sorted[0]?.label ?? '';
   const lo = sorted[sorted.length - 1]?.label ?? '';
-  if (overall >= 85) {
-    return `这只龙虾今天超常发挥，综合 ${overall} 分！${hi}特别亮眼，继续保持钳力全开。`;
+  const gap = sorted[0]?.score - sorted[sorted.length - 1]?.score;
+  if (overall >= 90) {
+    return `六边形战士！综合 ${overall} 分，${hi}拉满，连短板${lo}都不短。这龙虾真的猛。`;
+  }
+  if (overall >= 80) {
+    return `高手级别，综合 ${overall} 分！${hi}是招牌菜，${lo}如果再练练就是 S 级了。`;
   }
   if (overall >= 70) {
-    return `整体不错，综合 ${overall} 分；${hi}是强项，${lo}还能再磨磨钳子。`;
+    return `稳健选手，综合 ${overall} 分。${hi}不错，${lo}拖了点后腿（差 ${gap} 分），针对性练练就上去了。`;
   }
   if (overall >= 55) {
-    return `还在成长期，综合 ${overall} 分；建议多跑带工具和检索的任务，本虾下次再给你打分。`;
+    return `还在成长期，综合 ${overall} 分。建议多用工具类和检索类任务磨练，${lo}目前偏弱，本虾下次再考你。`;
   }
-  return `分数偏保守（${overall}），先把会话跑起来、让日志肥一点，本虾才能评得准。`;
+  return `新手上路（${overall} 分），日志数据还不够多，本虾暂时保守评分。多跑几轮任务再来！`;
 }
 
 function computeFromReplays(replays: SessionReplay[]): BenchmarkResult {
