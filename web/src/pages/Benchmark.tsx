@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trophy, Zap, Play, RefreshCw, Shield, Search, Code, Pen, Wrench, Coins, TrendingUp } from 'lucide-react'
+import { Trophy, Zap, Play, RefreshCw, Shield, Search, Code, Pen, Wrench, Coins, TrendingUp, Share2 } from 'lucide-react'
 
 interface DimensionScore {
   dimension: string
@@ -140,13 +140,25 @@ export default function Benchmark() {
           <h2 className="text-2xl font-bold mb-1">能力评测</h2>
           <p className="text-slate-400 text-sm">给你的龙虾做个体检，看看它到底行不行</p>
         </div>
-        <button
-          onClick={runBenchmark}
-          disabled={running}
-          className="px-4 py-2 bg-[#1e293b] hover:bg-[#334155] disabled:opacity-50 rounded-lg text-sm transition-colors flex items-center gap-2 border border-[#334155]"
-        >
-          {running ? <><RefreshCw className="w-4 h-4 animate-spin" /> 评测中...</> : <><RefreshCw className="w-4 h-4" /> 重新评测</>}
-        </button>
+        <div className="flex items-center gap-2">
+          {result && (
+            <a
+              href={`/share/benchmark/${encodeURIComponent(result.id)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              <Share2 className="w-4 h-4" /> 分享成绩单
+            </a>
+          )}
+          <button
+            onClick={runBenchmark}
+            disabled={running}
+            className="px-4 py-2 bg-[#1e293b] hover:bg-[#334155] disabled:opacity-50 rounded-lg text-sm transition-colors flex items-center gap-2 border border-[#334155]"
+          >
+            {running ? <><RefreshCw className="w-4 h-4 animate-spin" /> 评测中...</> : <><RefreshCw className="w-4 h-4" /> 重新评测</>}
+          </button>
+        </div>
       </div>
 
       {error && <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-300 text-sm">{error}</div>}

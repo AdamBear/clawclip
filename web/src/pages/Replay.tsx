@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Play, Brain, Wrench, CheckCircle, Bot, MessageSquare, Settings, Clock, ChevronDown, ChevronUp, Zap } from 'lucide-react'
+import { ArrowLeft, Play, Brain, Wrench, CheckCircle, Bot, MessageSquare, Settings, Clock, ChevronDown, ChevronUp, Zap, Share2 } from 'lucide-react'
 
 interface SessionMeta {
   id: string
@@ -167,9 +167,21 @@ export default function Replay() {
   if (view === 'detail') {
     return (
       <div>
-        <button onClick={() => { setView('list'); setReplay(null) }} className="flex items-center gap-2 text-slate-400 hover:text-white mb-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> 返回列表
-        </button>
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => { setView('list'); setReplay(null) }} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+            <ArrowLeft className="w-4 h-4" /> 返回列表
+          </button>
+          {replay && (
+            <a
+              href={`/share/replay/${encodeURIComponent(replay.meta.id)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg text-sm font-medium transition-colors"
+            >
+              <Share2 className="w-4 h-4" /> 分享卡片
+            </a>
+          )}
+        </div>
 
         {loading && <div className="text-center py-12 text-slate-500">加载中...</div>}
         {error && <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-300 text-sm">{error}</div>}
