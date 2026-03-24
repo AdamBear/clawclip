@@ -23,17 +23,27 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
-      <header className="bg-[#1e293b] border-b border-[#334155] px-6 py-4">
-        <div className="flex items-center justify-between">
+      <header className="relative bg-[#1e293b]/80 backdrop-blur-xl border-b border-transparent px-6 py-4">
+        <div
+          className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-orange-500/20 via-transparent to-blue-500/20"
+          aria-hidden
+        />
+        <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">🍤</span>
+            <span className="relative inline-flex h-12 w-12 items-center justify-center">
+              <span
+                className="absolute inset-0 rounded-full border border-orange-500/25 animate-spin-slow"
+                aria-hidden
+              />
+              <span className="relative z-10 inline-flex rounded-full p-0.5 text-3xl animate-pulse-glow">🍤</span>
+            </span>
             <div>
               <h1 className="text-xl font-bold">虾片</h1>
               <p className="text-xs text-slate-400">ClawClip</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 hidden sm:inline">v0.6.0</span>
+            <span className="text-xs text-slate-500 hidden sm:inline">v0.7.0</span>
             <button type="button" disabled className="p-2 rounded-lg transition-colors opacity-50 cursor-not-allowed" title="设置功能即将上线">
               <Settings className="w-5 h-5 text-slate-400" />
             </button>
@@ -48,10 +58,10 @@ function App() {
               <li key={tab.id}>
                 <button
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm border-l-2 ${
                     activeTab === tab.id
-                      ? 'bg-orange-500/10 text-orange-400 font-medium'
-                      : 'text-slate-400 hover:bg-[#334155] hover:text-white'
+                      ? 'bg-orange-500/10 text-orange-400 font-medium border-orange-500'
+                      : 'text-slate-400 hover:bg-[#334155] hover:text-white border-transparent'
                   }`}
                 >
                   <tab.icon className="w-5 h-5" />
@@ -63,7 +73,7 @@ function App() {
 
           <div className="mt-8 px-4">
             <div className="text-xs text-slate-600 leading-relaxed">
-              AI Agent 回放 · 评测 · 成本优化
+              🍤 龙虾正在待命中...
             </div>
           </div>
         </nav>
