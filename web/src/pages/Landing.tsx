@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Play, Trophy, BarChart3, Cloud, Github, MessageCircle, ArrowRight, Terminal, Zap, Eye, Shield, Coins } from 'lucide-react'
+import { useI18n, LanguageSwitcher } from '../lib/i18n'
 
 interface Props {
   onEnterDemo: () => void
@@ -8,42 +9,44 @@ interface Props {
 const FEATURES = [
   {
     icon: Play,
-    title: '会话回放',
-    desc: '把 AI Agent 的 JSONL 日志变成可交互的时间轴——每一步思考、工具调用、结果、花费，一目了然。',
+    titleKey: 'feat.replay',
+    descKey: 'feat.replay.desc',
     iconBg: 'bg-blue-500/10',
     iconColor: 'text-blue-400',
   },
   {
     icon: Trophy,
-    title: '六维评测',
-    desc: '离线分析历史会话，从写作、代码、工具、检索、安全、性价比六个维度给你的 Agent 打分。不调 API，不花钱。',
+    titleKey: 'feat.benchmark',
+    descKey: 'feat.benchmark.desc',
     iconBg: 'bg-cyan-500/10',
     iconColor: 'text-cyan-400',
   },
   {
     icon: BarChart3,
-    title: '成本监控',
-    desc: '逐日 Token 趋势、模型费用对比、预算告警、高消耗排行。每分钱花到哪了，清清楚楚。',
+    titleKey: 'feat.cost',
+    descKey: 'feat.cost.desc',
     iconBg: 'bg-emerald-500/10',
     iconColor: 'text-emerald-400',
   },
   {
     icon: Cloud,
-    title: '词云与标签',
-    desc: '自动提取会话关键词生成词云，按主题/工具/模型着色。会话自动标签，快速筛选。',
+    titleKey: 'feat.wordcloud',
+    descKey: 'feat.wordcloud.desc',
     iconBg: 'bg-violet-500/10',
     iconColor: 'text-violet-400',
   },
-]
+] as const
 
 const HIGHLIGHTS = [
-  { icon: Eye, text: '支持 OpenClaw / ZeroClaw 及所有兼容框架' },
-  { icon: Shield, text: '纯本地运行，数据不出你的电脑' },
-  { icon: Coins, text: '评测离线分析，零 API 成本' },
-  { icon: Zap, text: '内置 Demo 数据，无需安装即可体验' },
+  { icon: Eye, textKey: 'highlight.compat' as const },
+  { icon: Shield, textKey: 'highlight.local' as const },
+  { icon: Coins, textKey: 'highlight.free' as const },
+  { icon: Zap, textKey: 'highlight.demo' as const },
 ]
 
 export default function Landing({ onEnterDemo }: Props) {
+  const { t } = useI18n()
+
   return (
     <div className="min-h-screen bg-[#0b1120] text-slate-200 overflow-hidden">
       {/* Ambient orbs */}
@@ -71,11 +74,12 @@ export default function Landing({ onEnterDemo }: Props) {
           >
             <Github className="w-4 h-4" /> GitHub
           </a>
+          <LanguageSwitcher />
           <button
             onClick={onEnterDemo}
             className="text-sm font-medium px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 transition-all hover:scale-[1.03] active:scale-[0.98]"
           >
-            体验 Demo
+            {t('landing.cta.demo')}
           </button>
         </div>
       </nav>
@@ -90,18 +94,17 @@ export default function Landing({ onEnterDemo }: Props) {
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/20 bg-blue-500/[0.06] text-xs text-blue-400 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-            支持 OpenClaw / ZeroClaw 及所有兼容 Agent 框架
+            {t('landing.tagline')}
           </div>
 
           <h1 className="text-4xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6">
-            <span className="text-white">你的 AI Agent</span>
+            <span className="text-white">{t('landing.hero.line1')}</span>
             <br />
-            <span className="text-gradient">到底干了什么？</span>
+            <span className="text-gradient">{t('landing.hero.line2')}</span>
           </h1>
 
           <p className="text-lg lg:text-xl text-slate-400 leading-relaxed max-w-2xl mb-10">
-            虾片 (ClawClip) 把无聊的 Agent 日志变成好看的时间轴回放，
-            给你的龙虾做六维体检打分，顺便看看钱都花哪了。
+            {t('landing.hero.desc')}
           </p>
 
           <div className="flex flex-wrap gap-4">
@@ -110,7 +113,7 @@ export default function Landing({ onEnterDemo }: Props) {
               className="group flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold text-base shadow-xl shadow-blue-500/20 hover:shadow-blue-500/35 transition-all hover:scale-[1.03] active:scale-[0.98]"
             >
               <Play className="w-5 h-5" />
-              体验 Demo
+              {t('landing.cta.demo')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
             <a
@@ -120,7 +123,7 @@ export default function Landing({ onEnterDemo }: Props) {
               className="flex items-center gap-3 px-8 py-4 rounded-2xl border border-white/10 text-slate-300 font-medium text-base hover:bg-white/[0.04] hover:border-white/20 transition-all"
             >
               <Github className="w-5 h-5" />
-              查看源码
+              {t('landing.cta.source')}
             </a>
           </div>
         </motion.div>
@@ -135,7 +138,7 @@ export default function Landing({ onEnterDemo }: Props) {
           {HIGHLIGHTS.map((h, i) => (
             <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
               <h.icon className="w-4 h-4 text-slate-500 shrink-0" />
-              <span className="text-xs text-slate-400">{h.text}</span>
+              <span className="text-xs text-slate-400">{t(h.textKey)}</span>
             </div>
           ))}
         </motion.div>
@@ -149,14 +152,14 @@ export default function Landing({ onEnterDemo }: Props) {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3">核心功能</h2>
-          <p className="text-slate-500 mb-12">装好龙虾，打开虾片，一切尽在掌握</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3">{t('landing.features')}</h2>
+          <p className="text-slate-500 mb-12">{t('landing.features.sub')}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {FEATURES.map((f, i) => (
             <motion.div
-              key={f.title}
+              key={f.titleKey}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
@@ -168,8 +171,8 @@ export default function Landing({ onEnterDemo }: Props) {
                   <f.icon className={`w-5 h-5 ${f.iconColor}`} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{f.title}</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{t(f.titleKey)}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">{t(f.descKey)}</p>
                 </div>
               </div>
             </motion.div>
@@ -187,16 +190,16 @@ export default function Landing({ onEnterDemo }: Props) {
           className="card overflow-hidden"
         >
           <div className="p-8 lg:p-12 text-center">
-            <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3">想看看效果？</h2>
+            <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3">{t('landing.preview.title')}</h2>
             <p className="text-slate-400 mb-8 max-w-md mx-auto">
-              内置 8 条真实场景的 Demo 会话——小红书文案、代码调试、竞品分析、翻译……不用安装，直接体验。
+              {t('landing.preview.desc')}
             </p>
             <button
               onClick={onEnterDemo}
               className="group inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-xl shadow-blue-500/20 hover:shadow-blue-500/35 transition-all hover:scale-[1.03] active:scale-[0.98]"
             >
               <Play className="w-5 h-5" />
-              进入 Demo 演示
+              {t('landing.preview.cta')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -209,17 +212,17 @@ export default function Landing({ onEnterDemo }: Props) {
                 <div className="w-3 h-3 rounded-full bg-green-500/40" />
               </div>
               <div className="grid grid-cols-4 gap-3">
-                {['运行中', '¥3.42', '15 技能', '3 平台'].map((t, i) => (
+                {[t('dashboard.status.running'), '¥3.42', '15 技能', '3 平台'].map((cell, i) => (
                   <div key={i} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
                     <div className="text-[10px] text-slate-600 mb-1">指标</div>
-                    <div className="text-sm font-bold text-white">{t}</div>
+                    <div className="text-sm font-bold text-white">{cell}</div>
                   </div>
                 ))}
               </div>
               <div className="grid grid-cols-3 gap-3">
-                {['🎬 会话回放', '🏆 能力评测', '📊 费用趋势'].map((t, i) => (
+                {[`🎬 ${t('feat.replay')}`, `🏆 ${t('feat.benchmark')}`, `📊 ${t('feat.cost')}`].map((label, i) => (
                   <div key={i} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                    <div className="text-xs text-slate-400">{t}</div>
+                    <div className="text-xs text-slate-400">{label}</div>
                   </div>
                 ))}
               </div>
@@ -238,16 +241,16 @@ export default function Landing({ onEnterDemo }: Props) {
         >
           <div className="flex items-center gap-3 mb-3">
             <Terminal className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-2xl lg:text-3xl font-bold text-white">三步安装</h2>
+            <h2 className="text-2xl lg:text-3xl font-bold text-white">{t('landing.install')}</h2>
           </div>
-          <p className="text-slate-500 mb-8">本地部署，数据完全在你手里</p>
+          <p className="text-slate-500 mb-8">{t('landing.install.sub')}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
-            { step: '01', cmd: 'git clone https://github.com/Ylsssq926/clawclip.git\ncd clawclip', label: '克隆仓库' },
-            { step: '02', cmd: 'npm install', label: '安装依赖' },
-            { step: '03', cmd: 'npm run build && npm start\n# 打开 http://localhost:8080', label: '启动服务' },
+            { step: '01', cmd: 'git clone https://github.com/Ylsssq926/clawclip.git\ncd clawclip', labelKey: 'landing.install.s1' as const },
+            { step: '02', cmd: 'npm install', labelKey: 'landing.install.s2' as const },
+            { step: '03', cmd: 'npm run build && npm start\n# 打开 http://localhost:8080', labelKey: 'landing.install.s3' as const },
           ].map((s, i) => (
             <motion.div
               key={s.step}
@@ -258,7 +261,7 @@ export default function Landing({ onEnterDemo }: Props) {
               className="card p-6"
             >
               <div className="text-3xl font-black text-gradient mb-4">{s.step}</div>
-              <p className="text-sm font-medium text-white mb-3">{s.label}</p>
+              <p className="text-sm font-medium text-white mb-3">{t(s.labelKey)}</p>
               <pre className="text-xs text-slate-400 bg-black/30 rounded-lg p-3 overflow-x-auto font-mono leading-relaxed">
                 {s.cmd}
               </pre>

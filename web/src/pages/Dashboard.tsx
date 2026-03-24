@@ -2,6 +2,7 @@ import { Activity, DollarSign, Puzzle, Wifi, WifiOff, ArrowRight, Sparkles, Clou
 import { useState, useEffect } from 'react'
 import type { Tab } from '../App'
 import WordCloud, { type KeywordItem } from '../components/WordCloud'
+import { useI18n, type Locale } from '../lib/i18n'
 
 interface StatusData {
   running: boolean
@@ -32,9 +33,19 @@ interface Props {
   onNavigate: (tab: Tab) => void
 }
 
-function formatRelativeTime(dateStr: string): string {
+function formatRelativeTime(dateStr: string, locale: Locale): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const min = Math.floor(diff / 60000)
+  if (locale === 'en') {
+    if (min < 1) return 'just now'
+    if (min < 60) return `${min}m ago`
+    const hours = Math.floor(min / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    if (days === 1) return 'yesterday'
+    if (days < 30) return `${days}d ago`
+    return new Date(dateStr).toLocaleDateString('en-US')
+  }
   if (min < 1) return '刚刚'
   if (min < 60) return `${min}分钟前`
   const hours = Math.floor(min / 60)
@@ -45,13 +56,18 @@ function formatRelativeTime(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('zh-CN')
 }
 
-function formatDuration(ms: number): string {
+function formatDuration(ms: number, locale: Locale): string {
   const sec = Math.floor(ms / 1000)
+  if (locale === 'en') {
+    if (sec < 60) return `${sec}s`
+    return `${Math.floor(sec / 60)}m ${sec % 60}s`
+  }
   if (sec < 60) return `${sec}秒`
   return `${Math.floor(sec / 60)}分${sec % 60}秒`
 }
 
 export default function Dashboard({ onNavigate }: Props) {
+  const { t, locale } = useI18n()
   const [status, setStatus] = useState<StatusData | null>(null)
   const [cost, setCost] = useState<CostSummary | null>(null)
   const [loading, setLoading] = useState(true)
@@ -90,12 +106,19 @@ export default function Dashboard({ onNavigate }: Props) {
   }, [])
 
   const hour = new Date().getHours()
-  const greeting = hour < 6 ? '夜深了' : hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好'
+  const greetingKey =
+    hour < 6
+      ? 'dashboard.greeting.night'
+      : hour < 12
+        ? 'dashboard.greeting.morning'
+        : hour < 18
+          ? 'dashboard.greeting.afternoon'
+          : 'dashboard.greeting.evening'
 
   const statCards = [
     {
       label: 'OpenClaw 状态',
-      value: loading ? '--' : status?.running ? '运行中' : '未连接',
+      value: loading ? t('dashboard.status.checking') : status?.running ? t('dashboard.status.running') : t('dashboard.status.offline'),
       sub: status?.version && status.version !== 'unknown' ? `v${status.version}` : null,
       icon: status?.running ? Wifi : WifiOff,
       variant: status?.running ? 'card-green' : 'card',
@@ -136,13 +159,17 @@ export default function Dashboard({ onNavigate }: Props) {
       {/* Hero */}
       <div className="animate-fade-in">
         <h2 className="text-3xl font-bold tracking-tight">
-          <span className="text-gradient">{greeting}</span>
-          <span className="text-white">，主人</span>
+          <span className="text-gradient">{t(greetingKey)}</span>
+          <span className="text-white">{t('dashboard.greeting.suffix')}</span>
         </h2>
         <p className="text-slate-500 mt-2 text-sm">
           {status?.running
-            ? `你的龙虾正在工作中，已装备 ${status.skillCount} 个技能`
-            : '你的龙虾还没上线，启动 OpenClaw 后我就能帮你干活了'}
+            ? locale === 'en'
+              ? `Your lobster is working, ${status.skillCount} skills equipped`
+              : `你的龙虾正在工作中，已装备 ${status.skillCount} 个技能`
+            : locale === 'en'
+              ? 'Your lobster is offline — start OpenClaw and I can help'
+              : '你的龙虾还没上线，启动 OpenClaw 后我就能帮你干活了'}
         </p>
       </div>
 
@@ -164,13 +191,34 @@ export default function Dashboard({ onNavigate }: Props) {
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-4 h-4 text-blue-400" />
-          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">快捷操作</h3>
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">{t('dashboard.quick')}</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { tab: 'replay' as const, icon: '🎬', title: '会话回放', desc: '看看龙虾每一步在干什么', color: 'card-blue', textColor: 'text-blue-400' },
-            { tab: 'cost' as const, icon: '📊', title: '费用监控', desc: '看看钱都花哪了', color: 'card-blue', textColor: 'text-blue-400' },
-            { tab: 'benchmark' as const, icon: '🏆', title: '能力评测', desc: '给龙虾做六维体检', color: 'card-purple', textColor: 'text-violet-400' },
+            {
+              tab: 'replay' as const,
+              icon: '🎬',
+              title: locale === 'en' ? 'Session replay' : '会话回放',
+              desc: locale === 'en' ? 'See every step your lobster takes' : '看看龙虾每一步在干什么',
+              color: 'card-blue',
+              textColor: 'text-blue-400',
+            },
+            {
+              tab: 'cost' as const,
+              icon: '📊',
+              title: locale === 'en' ? 'Cost monitor' : '费用监控',
+              desc: locale === 'en' ? 'See where your spend goes' : '看看钱都花哪了',
+              color: 'card-blue',
+              textColor: 'text-blue-400',
+            },
+            {
+              tab: 'benchmark' as const,
+              icon: '🏆',
+              title: locale === 'en' ? 'Benchmark' : '能力评测',
+              desc: locale === 'en' ? 'Six-dimension health check' : '给龙虾做六维体检',
+              color: 'card-purple',
+              textColor: 'text-violet-400',
+            },
           ].map((item, i) => (
             <button
               key={item.tab}
@@ -182,7 +230,7 @@ export default function Dashboard({ onNavigate }: Props) {
               <h4 className="font-semibold text-white mb-1">{item.title}</h4>
               <p className="text-xs text-slate-500 mb-3">{item.desc}</p>
               <span className={`${item.textColor} text-xs font-medium flex items-center gap-1 group-hover:gap-2 transition-all`}>
-                查看 <ArrowRight className="w-3 h-3" />
+                {locale === 'en' ? 'Open' : '查看'} <ArrowRight className="w-3 h-3" />
               </span>
             </button>
           ))}
@@ -195,7 +243,7 @@ export default function Dashboard({ onNavigate }: Props) {
         <div className="lg:col-span-2 card p-6 animate-fade-in" style={{ animationDelay: '350ms' }}>
           <div className="flex items-center gap-2 mb-4">
             <Cloud className="w-4 h-4 text-cyan-400" />
-            <h4 className="text-sm font-semibold text-slate-400">热门关键词</h4>
+            <h4 className="text-sm font-semibold text-slate-400">{t('dashboard.keywords')}</h4>
           </div>
           {kwLoading ? (
             <div className="space-y-3">
@@ -207,7 +255,7 @@ export default function Dashboard({ onNavigate }: Props) {
           ) : keywords.length > 0 ? (
             <WordCloud keywords={keywords} onWordClick={() => onNavigate('replay')} height={200} />
           ) : (
-            <p className="text-xs text-slate-600 py-8 text-center">暂无数据</p>
+            <p className="text-xs text-slate-600 py-8 text-center">{locale === 'en' ? 'No data yet' : '暂无数据'}</p>
           )}
         </div>
 
@@ -216,10 +264,10 @@ export default function Dashboard({ onNavigate }: Props) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-blue-400" />
-              <h4 className="text-sm font-semibold text-slate-400">最近活动</h4>
+              <h4 className="text-sm font-semibold text-slate-400">{t('dashboard.recent')}</h4>
             </div>
             <button onClick={() => onNavigate('replay')} className="text-xs text-slate-600 hover:text-blue-400 transition-colors">
-              查看全部 →
+              {t('dashboard.recent.all')}
             </button>
           </div>
           {sessionsLoading ? (
@@ -227,7 +275,7 @@ export default function Dashboard({ onNavigate }: Props) {
               {[1,2,3].map(i => <div key={i} className="skeleton h-16 w-full" />)}
             </div>
           ) : sessions.length === 0 ? (
-            <p className="text-xs text-slate-600 py-8 text-center">暂无会话记录</p>
+            <p className="text-xs text-slate-600 py-8 text-center">{locale === 'en' ? 'No sessions yet' : '暂无会话记录'}</p>
           ) : (
             <div className="space-y-2">
               {sessions.slice(0, 5).map(s => (
@@ -241,14 +289,14 @@ export default function Dashboard({ onNavigate }: Props) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-slate-300 truncate group-hover:text-white transition-colors">
-                      {s.summary?.slice(0, 50) || '会话'}
+                      {s.summary?.slice(0, 50) || (locale === 'en' ? 'Session' : '会话')}
                     </p>
                     <div className="flex items-center gap-2 text-[11px] text-slate-600 mt-0.5">
                       <span>{s.agentName}</span>
                       <span>·</span>
-                      <span>{formatDuration(s.durationMs)}</span>
+                      <span>{formatDuration(s.durationMs, locale)}</span>
                       <span>·</span>
-                      <span>{formatRelativeTime(s.startTime)}</span>
+                      <span>{formatRelativeTime(s.startTime, locale)}</span>
                     </div>
                   </div>
                   <span className="text-xs text-cyan-400/80 font-mono shrink-0">¥{s.totalCost.toFixed(3)}</span>

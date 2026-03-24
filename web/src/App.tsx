@@ -10,6 +10,7 @@ import Knowledge from './pages/Knowledge'
 import Leaderboard from './pages/Leaderboard'
 import { LayoutDashboard, Play, Trophy, DollarSign, Puzzle, Store, ArrowLeft, Database, Medal } from 'lucide-react'
 import { cn } from './lib/cn'
+import { useI18n, LanguageSwitcher } from './lib/i18n'
 
 export type Tab =
   | 'dashboard'
@@ -22,17 +23,18 @@ export type Tab =
   | 'knowledge'
 
 const tabs = [
-  { id: 'dashboard' as const, name: '仪表盘', icon: LayoutDashboard },
-  { id: 'replay' as const, name: '回放', icon: Play },
-  { id: 'benchmark' as const, name: '评测', icon: Trophy },
-  { id: 'leaderboard' as const, name: '排行榜', icon: Medal },
-  { id: 'cost' as const, name: '费用', icon: DollarSign },
-  { id: 'skills' as const, name: 'Skills', icon: Puzzle },
-  { id: 'templates' as const, name: '模板', icon: Store },
-  { id: 'knowledge' as const, name: '知识库', icon: Database },
+  { id: 'dashboard' as const, nameKey: 'nav.dashboard', icon: LayoutDashboard },
+  { id: 'replay' as const, nameKey: 'nav.replay', icon: Play },
+  { id: 'benchmark' as const, nameKey: 'nav.benchmark', icon: Trophy },
+  { id: 'leaderboard' as const, nameKey: 'nav.leaderboard', icon: Medal },
+  { id: 'cost' as const, nameKey: 'nav.cost', icon: DollarSign },
+  { id: 'skills' as const, nameKey: 'nav.skills', icon: Puzzle },
+  { id: 'templates' as const, nameKey: 'nav.templates', icon: Store },
+  { id: 'knowledge' as const, nameKey: 'nav.knowledge', icon: Database },
 ]
 
 function App() {
+  const { t } = useI18n()
   const [showLanding, setShowLanding] = useState(true)
   const [activeTab, setActiveTab] = useState<Tab>('replay')
 
@@ -45,14 +47,14 @@ function App() {
       {/* Demo banner */}
       <div className="bg-gradient-to-r from-blue-500/10 via-cyan-500/5 to-transparent border-b border-blue-500/10 px-6 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">DEMO</span>
-          <span className="text-xs text-slate-400">你正在浏览演示数据 · 本地部署后可查看真实 Agent 数据</span>
+          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">{t('app.demo')}</span>
+          <span className="text-xs text-slate-400">{t('app.demo.desc')}</span>
         </div>
         <button
           onClick={() => setShowLanding(true)}
           className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-400 transition-colors"
         >
-          <ArrowLeft className="w-3 h-3" /> 返回首页
+          <ArrowLeft className="w-3 h-3" /> {t('app.back')}
         </button>
       </div>
 
@@ -62,11 +64,14 @@ function App() {
           <div className="flex items-center gap-3">
             <span className="text-xl">🍤</span>
             <div>
-              <h1 className="text-base font-semibold tracking-tight text-white">虾片</h1>
-              <p className="text-[10px] text-slate-500 leading-none">ClawClip Demo</p>
+              <h1 className="text-base font-semibold tracking-tight text-white">{t('app.name')}</h1>
+              <p className="text-[10px] text-slate-500 leading-none">{t('app.subtitle')} Demo</p>
             </div>
           </div>
-          <span className="text-[10px] text-slate-600 font-mono">v0.8.0</span>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <span className="text-[10px] text-slate-600 font-mono">v0.8.0</span>
+          </div>
         </div>
       </header>
 
@@ -87,13 +92,13 @@ function App() {
                   )}
                 >
                   <tab.icon className={cn('w-[18px] h-[18px]', activeTab === tab.id && 'text-blue-400')} />
-                  {tab.name}
+                  {t(tab.nameKey)}
                 </button>
               </li>
             ))}
           </ul>
           <div className="pt-4 border-t border-white/[0.08]">
-            <p className="text-[11px] text-slate-600 px-3">🍤 龙虾待命中</p>
+            <p className="text-[11px] text-slate-600 px-3">{t('app.lobster')}</p>
           </div>
         </nav>
 
