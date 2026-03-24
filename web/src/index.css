@@ -22,7 +22,7 @@
     min-width: 320px;
     min-height: 100vh;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: #050816;
+    background: #0b1120;
     color: #e2e8f0;
   }
 
@@ -35,13 +35,13 @@
   /* Base card - the fundamental building block */
   .card {
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.6));
-    border: 1px solid rgba(148, 163, 184, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.12);
     border-radius: 16px;
     backdrop-filter: blur(8px);
     transition: border-color 0.3s, box-shadow 0.3s;
   }
   .card:hover {
-    border-color: rgba(148, 163, 184, 0.15);
+    border-color: rgba(148, 163, 184, 0.22);
   }
 
   /* Accent card variants */

@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Replay from './pages/Replay'
 import Benchmark from './pages/Benchmark'
 import CostMonitor from './pages/CostMonitor'
 import SkillManager from './pages/SkillManager'
 import TemplateMarket from './pages/TemplateMarket'
-import { LayoutDashboard, Play, Trophy, DollarSign, Puzzle, Store } from 'lucide-react'
+import { LayoutDashboard, Play, Trophy, DollarSign, Puzzle, Store, ArrowLeft } from 'lucide-react'
 import { cn } from './lib/cn'
 
 export type Tab = 'dashboard' | 'replay' | 'benchmark' | 'cost' | 'skills' | 'templates'
@@ -20,12 +21,31 @@ const tabs = [
 ]
 
 function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('dashboard')
+  const [showLanding, setShowLanding] = useState(true)
+  const [activeTab, setActiveTab] = useState<Tab>('replay')
+
+  if (showLanding) {
+    return <Landing onEnterDemo={() => setShowLanding(false)} />
+  }
 
   return (
-    <div className="min-h-screen bg-[#050816] text-slate-200 bg-dots bg-ambient">
+    <div className="min-h-screen bg-[#0b1120] text-slate-200 bg-dots bg-ambient">
+      {/* Demo banner */}
+      <div className="bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border-b border-orange-500/10 px-6 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">DEMO</span>
+          <span className="text-xs text-slate-400">你正在浏览演示数据 · 本地部署后可查看真实 Agent 数据</span>
+        </div>
+        <button
+          onClick={() => setShowLanding(true)}
+          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-orange-400 transition-colors"
+        >
+          <ArrowLeft className="w-3 h-3" /> 返回首页
+        </button>
+      </div>
+
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#050816]/80 backdrop-blur-xl border-b border-white/[0.06] px-6 py-3">
+      <header className="sticky top-0 z-50 bg-[#0b1120]/80 backdrop-blur-xl border-b border-white/[0.08] px-6 py-3">
         <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-lg shadow-lg shadow-orange-500/20">
@@ -33,7 +53,7 @@ function App() {
             </div>
             <div>
               <h1 className="text-base font-semibold tracking-tight text-white">虾片</h1>
-              <p className="text-[10px] text-slate-500 leading-none">ClawClip</p>
+              <p className="text-[10px] text-slate-500 leading-none">ClawClip Demo</p>
             </div>
           </div>
           <span className="text-[10px] text-slate-600 font-mono">v0.8.0</span>
@@ -42,7 +62,7 @@ function App() {
 
       <div className="flex max-w-screen-2xl mx-auto">
         {/* Sidebar */}
-        <nav className="w-56 shrink-0 sticky top-[49px] h-[calc(100vh-49px)] border-r border-white/[0.06] py-4 px-3 flex flex-col">
+        <nav className="w-56 shrink-0 sticky top-[49px] h-[calc(100vh-49px-33px)] border-r border-white/[0.08] py-4 px-3 flex flex-col">
           <ul className="space-y-0.5 flex-1">
             {tabs.map(tab => (
               <li key={tab.id}>
@@ -62,13 +82,13 @@ function App() {
               </li>
             ))}
           </ul>
-          <div className="pt-4 border-t border-white/[0.06]">
+          <div className="pt-4 border-t border-white/[0.08]">
             <p className="text-[11px] text-slate-600 px-3">🍤 龙虾待命中</p>
           </div>
         </nav>
 
         {/* Main */}
-        <main className="flex-1 p-8 min-h-[calc(100vh-49px)] overflow-auto">
+        <main className="flex-1 p-8 min-h-[calc(100vh-49px-33px)] overflow-auto">
           {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
           {activeTab === 'replay' && <Replay />}
           {activeTab === 'benchmark' && <Benchmark />}
