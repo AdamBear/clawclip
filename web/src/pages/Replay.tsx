@@ -4,6 +4,9 @@ import { ArrowLeft, Play, Pause, Brain, Wrench, CheckCircle, Bot, MessageSquare,
 import FadeIn from '../components/ui/FadeIn'
 import GlowCard from '../components/ui/GlowCard'
 import { cn } from '../lib/cn'
+import { useI18n, type Locale } from '../lib/i18n'
+
+const TAG_ALL = '__all__'
 
 interface SessionMeta {
   id: string
@@ -27,18 +30,22 @@ interface SessionMeta {
   summary: string
 }
 
-function replaySessionTitle(m: SessionMeta): string {
-  return (m.sessionLabel?.trim() || m.summary?.trim() || '').slice(0, 120) || '无标题会话'
+function replaySessionTitle(m: SessionMeta, untitled: string): string {
+  return (m.sessionLabel?.trim() || m.summary?.trim() || '').slice(0, 120) || untitled
 }
 
-function replaySessionSubtitle(m: SessionMeta): string | null {
+function replaySessionSubtitle(m: SessionMeta, locale: Locale): string | null {
   const parts: string[] = []
   if (m.storeChannel?.trim()) parts.push(m.storeChannel.trim())
   const prov = m.storeProvider?.trim()
   if (prov && prov !== m.storeChannel?.trim()) parts.push(prov)
   if (m.storeModel?.trim()) parts.push(m.storeModel.trim())
   if (typeof m.storeContextTokens === 'number' && m.storeContextTokens > 0) {
-    parts.push(`~${m.storeContextTokens.toLocaleString()} 上下文 token`)
+    parts.push(
+      locale === 'en'
+        ? `~${m.storeContextTokens.toLocaleString()} ctx tok`
+        : `~${m.storeContextTokens.toLocaleString()} 上下文 token`,
+    )
   }
   return parts.length ? parts.join(' · ') : null
 }
@@ -79,17 +86,29 @@ interface TagInfo {
   color: string
 }
 
-function formatDuration(ms: number): string {
+function formatDuration(ms: number, locale: Locale): string {
   const sec = Math.floor(ms / 1000)
+  if (locale === 'en') {
+    if (sec < 60) return `${sec}s`
+    return `${Math.floor(sec / 60)}m ${sec % 60}s`
+  }
   if (sec < 60) return `${sec}秒`
-  const min = Math.floor(sec / 60)
-  const s = sec % 60
-  return s > 0 ? `${min}分${s}秒` : `${min}分`
+  return `${Math.floor(sec / 60)}分${sec % 60}秒`
 }
 
-function formatRelativeTime(dateStr: string): string {
+function formatRelativeTime(dateStr: string, locale: Locale): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const min = Math.floor(diff / 60000)
+  if (locale === 'en') {
+    if (min < 1) return 'just now'
+    if (min < 60) return `${min}m ago`
+    const hours = Math.floor(min / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    if (days === 1) return 'yesterday'
+    if (days < 30) return `${days}d ago`
+    return new Date(dateStr).toLocaleDateString('en-US')
+  }
   if (min < 1) return '刚刚'
   if (min < 60) return `${min}分钟前`
   const hours = Math.floor(min / 60)
@@ -108,16 +127,26 @@ function formatStepOffset(stepTime: string, startTime: string): string {
   return `+${m}:${s.toString().padStart(2, '0')}`
 }
 
-const STEP_CONFIG: Record<string, { color: string; border: string; bg: string; icon: typeof Brain; label: string }> = {
-  user:        { color: 'text-blue-400',   border: 'border-l-blue-500',   bg: 'bg-blue-500/10',   icon: MessageSquare, label: '用户' },
-  thinking:    { color: 'text-purple-400', border: 'border-l-purple-500', bg: 'bg-purple-500/10', icon: Brain,          label: '思考' },
-  tool_call:   { color: 'text-cyan-400',   border: 'border-l-cyan-500',   bg: 'bg-cyan-500/10',   icon: Wrench,         label: '工具调用' },
-  tool_result: { color: 'text-green-400',  border: 'border-l-green-500',  bg: 'bg-green-500/10',  icon: CheckCircle,    label: '工具结果' },
-  response:    { color: 'text-blue-400',   border: 'border-l-blue-500',   bg: 'bg-blue-500/10',   icon: Bot,            label: '回复' },
-  system:      { color: 'text-slate-400',  border: 'border-l-slate-500',  bg: 'bg-slate-500/10',  icon: Settings,       label: '系统' },
+const STEP_STYLES: Record<string, { color: string; border: string; bg: string; icon: typeof Brain }> = {
+  user:        { color: 'text-blue-400',   border: 'border-l-blue-500',   bg: 'bg-blue-500/10',   icon: MessageSquare },
+  thinking:    { color: 'text-purple-400', border: 'border-l-purple-500', bg: 'bg-purple-500/10', icon: Brain },
+  tool_call:   { color: 'text-cyan-400',   border: 'border-l-cyan-500',   bg: 'bg-cyan-500/10',   icon: Wrench },
+  tool_result: { color: 'text-green-400',  border: 'border-l-green-500',  bg: 'bg-green-500/10',  icon: CheckCircle },
+  response:    { color: 'text-blue-400',   border: 'border-l-blue-500',   bg: 'bg-blue-500/10',   icon: Bot },
+  system:      { color: 'text-slate-400',  border: 'border-l-slate-500',  bg: 'bg-slate-500/10',  icon: Settings },
 }
 
-function CollapsibleText({ text, maxLines = 3 }: { text: string; maxLines?: number }) {
+function CollapsibleText({
+  text,
+  maxLines = 3,
+  expandLabel,
+  collapseLabel,
+}: {
+  text: string
+  maxLines?: number
+  expandLabel: string
+  collapseLabel: string
+}) {
   const [expanded, setExpanded] = useState(false)
   const lines = text.split('\n')
   const needsCollapse = lines.length > maxLines || text.length > 200
@@ -128,16 +157,19 @@ function CollapsibleText({ text, maxLines = 3 }: { text: string; maxLines?: numb
     <div>
       <pre className={`text-sm text-slate-300 whitespace-pre-wrap break-words ${!expanded ? 'line-clamp-3' : ''}`}>{text}</pre>
       <button type="button" onClick={() => setExpanded(!expanded)} className="text-xs text-accent hover:opacity-80 mt-1 flex items-center gap-1">
-        {expanded ? <><ChevronUp className="w-3 h-3" /> 收起</> : <><ChevronDown className="w-3 h-3" /> 展开全部</>}
+        {expanded ? <><ChevronUp className="w-3 h-3" />{collapseLabel}</> : <><ChevronDown className="w-3 h-3" />{expandLabel}</>}
       </button>
     </div>
   )
 }
 
 function StepCard({ step, startTime }: { step: SessionStep; startTime: string }) {
-  const config = STEP_CONFIG[step.type] || STEP_CONFIG.system
+  const { t } = useI18n()
+  const config = STEP_STYLES[step.type] || STEP_STYLES.system
   const Icon = config.icon
   const tokens = step.inputTokens + step.outputTokens
+  const typeKey = `replay.step.${step.type}`
+  const stepLabel = t(typeKey) !== typeKey ? t(typeKey) : t('replay.step.system')
 
   return (
     <motion.div
@@ -157,7 +189,7 @@ function StepCard({ step, startTime }: { step: SessionStep; startTime: string })
               <div className={`p-1.5 rounded-lg ${config.bg}`}>
                 <Icon className={`w-4 h-4 ${config.color}`} />
               </div>
-              <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
+              <span className={`text-sm font-medium ${config.color}`}>{stepLabel}</span>
               {step.toolName && <span className="text-xs px-2 py-0.5 bg-surface-overlay rounded-full text-slate-400 border border-surface-border">{step.toolName}</span>}
               {step.model && <span className="text-xs text-slate-500">{step.model}</span>}
             </div>
@@ -165,17 +197,29 @@ function StepCard({ step, startTime }: { step: SessionStep; startTime: string })
               <span className="text-xs text-slate-500">{tokens.toLocaleString()} tokens · ¥{step.cost.toFixed(4)}</span>
             )}
           </div>
-          {step.content && <CollapsibleText text={step.content} />}
+          {step.content && (
+            <CollapsibleText text={step.content} expandLabel={t('replay.expand')} collapseLabel={t('replay.collapse')} />
+          )}
           {step.toolInput && (
             <div className="mt-2 p-2 glass-raised rounded text-xs border border-surface-border">
-              <span className="text-slate-500">输入: </span>
-              <CollapsibleText text={step.toolInput} maxLines={2} />
+              <span className="text-slate-500">{t('replay.io.in')}: </span>
+              <CollapsibleText
+                text={step.toolInput}
+                maxLines={2}
+                expandLabel={t('replay.expand')}
+                collapseLabel={t('replay.collapse')}
+              />
             </div>
           )}
           {step.toolOutput && (
             <div className="mt-2 p-2 glass-raised rounded text-xs border border-surface-border">
-              <span className="text-slate-500">输出: </span>
-              <CollapsibleText text={step.toolOutput} maxLines={2} />
+              <span className="text-slate-500">{t('replay.io.out')}: </span>
+              <CollapsibleText
+                text={step.toolOutput}
+                maxLines={2}
+                expandLabel={t('replay.expand')}
+                collapseLabel={t('replay.collapse')}
+              />
             </div>
           )}
         </div>
@@ -236,11 +280,12 @@ function DetailSkeleton() {
 }
 
 export default function Replay() {
+  const { t, locale } = useI18n()
   const [view, setView] = useState<'list' | 'detail'>('list')
   const [sessions, setSessions] = useState<SessionMeta[]>([])
   const [sessionTags, setSessionTags] = useState<Record<string, string[]>>({})
   const [tagInfos, setTagInfos] = useState<TagInfo[]>([])
-  const [selectedTag, setSelectedTag] = useState('全部')
+  const [selectedTag, setSelectedTag] = useState(TAG_ALL)
   const [replay, setReplay] = useState<SessionReplay | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -260,7 +305,7 @@ export default function Replay() {
   }, [tagInfos])
 
   const filteredSessions = useMemo(() => {
-    if (selectedTag === '全部') return sessions
+    if (selectedTag === TAG_ALL) return sessions
     return sessions.filter(s => sessionTags[s.id]?.includes(selectedTag))
   }, [sessions, sessionTags, selectedTag])
 
@@ -295,9 +340,9 @@ export default function Replay() {
         setSessionTags(st)
         setTagInfos(tags)
       })
-      .catch(() => setError('获取会话列表失败，请检查后端是否运行'))
+      .catch(() => setError(t('replay.error.list')))
       .finally(() => setLoading(false))
-  }, [view])
+  }, [view, t])
 
   useEffect(() => {
     if (view !== 'detail') return
@@ -363,7 +408,7 @@ export default function Replay() {
     fetch(`/api/replay/sessions/${encodeURIComponent(id)}`)
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
       .then(setReplay)
-      .catch(() => setError('获取会话详情失败'))
+      .catch(() => setError(t('replay.error.detail')))
       .finally(() => setLoading(false))
   }
 
@@ -417,7 +462,7 @@ export default function Replay() {
       <div>
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <button type="button" onClick={() => { setView('list'); setReplay(null) }} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-            <ArrowLeft className="w-4 h-4" /> 返回列表
+            <ArrowLeft className="w-4 h-4" /> {t('replay.back')}
           </button>
           {replay && (
             <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -441,7 +486,7 @@ export default function Replay() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-accent hover:opacity-90 rounded-lg text-sm font-medium transition-opacity text-white"
               >
-                <Share2 className="w-4 h-4" /> 分享卡片
+                <Share2 className="w-4 h-4" /> {t('replay.share')}
               </a>
             </div>
           )}
@@ -454,13 +499,13 @@ export default function Replay() {
           <>
             <div className="glass-raised rounded-2xl p-6 mb-6 border border-surface-border border-accent/20">
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <h2 className="text-lg font-bold truncate min-w-0 flex-1">{replaySessionTitle(replay.meta)}</h2>
+                <h2 className="text-lg font-bold truncate min-w-0 flex-1">{replaySessionTitle(replay.meta, t('replay.untitled'))}</h2>
                 <span className="text-[10px] px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/20 font-medium shrink-0">
                   {dataSourceBadge(replay.meta.dataSource)}
                 </span>
               </div>
-              {replaySessionSubtitle(replay.meta) && (
-                <p className="text-xs text-slate-500 mb-2">{replaySessionSubtitle(replay.meta)}</p>
+              {replaySessionSubtitle(replay.meta, locale) && (
+                <p className="text-xs text-slate-500 mb-2">{replaySessionSubtitle(replay.meta, locale)}</p>
               )}
               {replay.meta.sessionKey && (
                 <p className="text-[10px] text-slate-600 font-mono truncate mb-3" title={replay.meta.sessionKey}>
@@ -469,19 +514,19 @@ export default function Replay() {
               )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-slate-500">Agent</span>
+                  <span className="text-slate-500">{t('replay.metric.agent')}</span>
                   <div className="text-white font-medium">{replay.meta.agentName}</div>
                 </div>
                 <div>
-                  <span className="text-slate-500">用时</span>
-                  <div className="text-white font-medium">{formatDuration(replay.meta.durationMs)}</div>
+                  <span className="text-slate-500">{t('replay.metric.time')}</span>
+                  <div className="text-white font-medium">{formatDuration(replay.meta.durationMs, locale)}</div>
                 </div>
                 <div>
-                  <span className="text-slate-500">花费</span>
+                  <span className="text-slate-500">{t('replay.metric.cost')}</span>
                   <div className="text-accent font-medium">¥{replay.meta.totalCost.toFixed(4)}</div>
                 </div>
                 <div>
-                  <span className="text-slate-500">Token</span>
+                  <span className="text-slate-500">{t('replay.metric.tokens')}</span>
                   <div className="text-blue-400 font-medium">{replay.meta.totalTokens.toLocaleString()}</div>
                 </div>
               </div>
@@ -498,7 +543,7 @@ export default function Replay() {
                   type="button"
                   onClick={togglePlay}
                   className="shrink-0 p-2 rounded-lg text-blue-400 hover:bg-blue-500/10 transition-colors"
-                  aria-label={autoPlay && !showAllSteps ? '暂停' : '播放'}
+                  aria-label={autoPlay && !showAllSteps ? t('replay.pause') : t('replay.play')}
                 >
                   {autoPlay && !showAllSteps ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                 </button>
@@ -536,11 +581,11 @@ export default function Replay() {
                   onClick={restartPlayback}
                   className="text-xs text-slate-500 hover:text-blue-400 transition-colors shrink-0"
                 >
-                  重新播放
+                  {t('replay.restart')}
                 </button>
 
                 <button type="button" onClick={showAll} className="text-xs text-slate-500 hover:text-blue-400 transition-colors shrink-0">
-                  查看全部
+                  {t('replay.showAll')}
                 </button>
               </div>
             )}
@@ -572,9 +617,10 @@ export default function Replay() {
               <div className="glass-raised rounded-xl p-5 border border-surface-border text-center border-cyan-500/20">
                 <Zap className="w-5 h-5 text-cyan-400 mx-auto mb-2" />
                 <p className="text-sm text-slate-400">
-                  本次会话共 <span className="text-white font-medium">{replay.meta.stepCount} 步</span>，
-                  用时 <span className="text-white font-medium">{formatDuration(replay.meta.durationMs)}</span>，
-                  花费 <span className="text-emerald-400 font-medium">¥{replay.meta.totalCost.toFixed(4)}</span>
+                  {t('replay.done.lead')
+                    .replace('{steps}', String(replay.meta.stepCount))
+                    .replace('{duration}', formatDuration(replay.meta.durationMs, locale))}
+                  <span className="text-emerald-400 font-medium">¥{replay.meta.totalCost.toFixed(4)}</span>
                 </p>
               </div>
             )}
@@ -586,20 +632,20 @@ export default function Replay() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-1">会话回放</h2>
-      <p className="text-slate-400 text-sm mb-6">看看龙虾都干了些什么 🍤</p>
+      <h2 className="text-2xl font-bold mb-1">{t('replay.title')}</h2>
+      <p className="text-slate-400 text-sm mb-6">{t('replay.subtitle')}</p>
 
       {!loading && !error && (
         <div className="flex flex-wrap gap-2 mb-6">
           <button
             type="button"
-            onClick={() => setSelectedTag('全部')}
+            onClick={() => setSelectedTag(TAG_ALL)}
             className={cn(
               'px-4 py-2 rounded-lg text-sm transition-colors',
-              selectedTag === '全部' ? 'bg-accent text-white' : 'glass-raised text-slate-400 hover:text-white hover:bg-surface-overlay',
+              selectedTag === TAG_ALL ? 'bg-accent text-white' : 'glass-raised text-slate-400 hover:text-white hover:bg-surface-overlay',
             )}
           >
-            全部
+            {t('replay.tag.all')}
           </button>
           {tagInfos.map(t => (
             <button
@@ -623,19 +669,19 @@ export default function Replay() {
       {!loading && !error && sessions.length === 0 && (
         <div className="text-center py-12 text-slate-500">
           <span className="text-4xl mb-3 block">🎬</span>
-          <p className="text-lg mb-1">暂无会话记录</p>
-          <p className="text-sm">启动 OpenClaw / ZeroClaw 跑几个任务，或配置 CLAWCLIP_LOBSTER_DIRS 指向数据目录。</p>
+          <p className="text-lg mb-1">{t('replay.empty.title')}</p>
+          <p className="text-sm">{t('replay.empty.hint')}</p>
         </div>
       )}
 
       {!loading && !error && sessions.length > 0 && filteredSessions.length === 0 && (
-        <div className="text-center py-12 text-slate-500 text-sm">该标签下暂无会话</div>
+        <div className="text-center py-12 text-slate-500 text-sm">{t('replay.empty.filtered')}</div>
       )}
 
       {!loading && !error && filteredSessions.length > 0 && (
         <div className="space-y-3">
           {filteredSessions.map((session, index) => {
-            const lineSub = replaySessionSubtitle(session)
+            const lineSub = replaySessionSubtitle(session, locale)
             return (
             <FadeIn key={session.id} delay={Math.min(index * 0.05, 0.5)}>
               <GlowCard className="w-full hover:border-accent/30">
@@ -647,7 +693,7 @@ export default function Replay() {
                   <div className="flex items-start justify-between mb-2 gap-2">
                     <div className="min-w-0 pr-4">
                       <h3 className="font-medium text-white group-hover:text-accent transition-colors truncate">
-                        {replaySessionTitle(session)}
+                        {replaySessionTitle(session, t('replay.untitled'))}
                       </h3>
                       {lineSub && (
                         <p className="text-[10px] text-slate-600 truncate mt-0.5">{lineSub}</p>
@@ -657,13 +703,13 @@ export default function Replay() {
                       <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-300/90 border border-blue-500/20 font-medium">
                         {dataSourceBadge(session.dataSource)}
                       </span>
-                      <span className="text-xs text-slate-500">{formatRelativeTime(session.startTime)}</span>
+                      <span className="text-xs text-slate-500">{formatRelativeTime(session.startTime, locale)}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-slate-500 mb-3">
                     <span className="flex items-center gap-1"><Bot className="w-3 h-3" />{session.agentName}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDuration(session.durationMs)}</span>
-                    <span className="flex items-center gap-1"><Play className="w-3 h-3" />{session.stepCount} 步</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDuration(session.durationMs, locale)}</span>
+                    <span className="flex items-center gap-1"><Play className="w-3 h-3" />{session.stepCount} {t('replay.list.steps')}</span>
                   </div>
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex flex-wrap gap-1.5 items-center">

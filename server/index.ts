@@ -17,6 +17,19 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
+app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
+  const se = err as SyntaxError & { status?: number; body?: unknown };
+  if (err instanceof SyntaxError && se.status === 400 && 'body' in se) {
+    res.status(400).json({ error: 'invalid_json', message: '请求体不是合法 JSON' });
+    return;
+  }
+  next(err);
+});
+
+app.get('/api/health', (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ ok: true, service: 'clawclip', ts: new Date().toISOString() });
+});
 
 // API 路由
 app.use('/api/status', statusRouter);
