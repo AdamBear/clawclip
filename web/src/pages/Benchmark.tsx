@@ -1,5 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { Trophy, Zap, Play, RefreshCw, Shield, Search, Code, Pen, Wrench, Coins, TrendingUp, Share2, ChevronDown, ChevronRight } from 'lucide-react'
+import FadeIn from '../components/ui/FadeIn'
+import GlowCard from '../components/ui/GlowCard'
+import AnimatedCounter from '../components/ui/AnimatedCounter'
+import GradientText from '../components/ui/GradientText'
+import ShimmerButton from '../components/ui/ShimmerButton'
 import {
   RadarChart,
   PolarGrid,
@@ -75,16 +81,21 @@ const RANK_STYLES: Record<string, { bg: string; text: string; glow: string }> = 
 }
 
 const chartTooltipProps = {
-  contentStyle: { background: '#1e293b', border: '1px solid #334155', borderRadius: 8 } as const,
+  contentStyle: {
+    background: 'rgba(17,24,39,0.9)',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: 12,
+    backdropFilter: 'blur(12px)',
+  } as const,
   labelStyle: { color: '#94a3b8' } as const,
   itemStyle: { color: '#e2e8f0' } as const,
 }
 
 function ScoreBar({ score, color }: { score: number; color: string }) {
-  const barColor = score >= 80 ? 'bg-green-500' : score >= 60 ? 'bg-blue-500' : score >= 40 ? 'bg-orange-500' : 'bg-red-500'
+  const barColor = score >= 80 ? 'bg-brand-green' : score >= 60 ? 'bg-brand-blue' : score >= 40 ? 'bg-accent' : 'bg-red-500'
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 bg-[#334155] rounded-full h-2.5">
+      <div className="flex-1 bg-surface-overlay rounded-full h-2.5 border border-surface-border">
         <div className={`h-2.5 rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${score}%` }} />
       </div>
       <span className={`text-sm font-bold w-8 text-right ${color}`}>{score}</span>
@@ -227,17 +238,15 @@ export default function Benchmark() {
         <h2 className="text-2xl font-bold mb-1">能力评测</h2>
         <p className="text-slate-400 text-sm mb-8">给你的龙虾做个体检，看看它到底行不行</p>
 
-        <div className="flex flex-col items-center justify-center py-16">
+        <FadeIn className="flex flex-col items-center justify-center py-16">
           <div className="text-6xl mb-6">🩺</div>
-          <h3 className="text-xl font-semibold mb-2">还没做过评测</h3>
+          <h3 className="text-xl font-semibold mb-2">
+            <GradientText animate={false}>还没做过评测</GradientText>
+          </h3>
           <p className="text-slate-400 text-sm mb-6 text-center max-w-md">
             评测会分析你的 Agent 历史会话数据，从中文写作、代码、工具调用、检索、安全、性价比六个维度打分。不会调用任何 API，不花钱。
           </p>
-          <button
-            onClick={runBenchmark}
-            disabled={running}
-            className="px-8 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 rounded-xl text-base font-medium transition-colors flex items-center gap-2"
-          >
+          <ShimmerButton variant="primary" onClick={runBenchmark} disabled={running} className="px-8 py-3 rounded-xl text-base">
             {running ? (
               <>
                 <RefreshCw className="w-5 h-5 animate-spin" /> 评测中...
@@ -247,8 +256,8 @@ export default function Benchmark() {
                 <Play className="w-5 h-5" /> 开始评测
               </>
             )}
-          </button>
-        </div>
+          </ShimmerButton>
+        </FadeIn>
       </div>
     )
   }
@@ -269,15 +278,16 @@ export default function Benchmark() {
               href={`/share/benchmark/${encodeURIComponent(result.id)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-accent hover:opacity-90 rounded-lg text-sm font-medium transition-opacity text-white flex items-center gap-2"
             >
               <Share2 className="w-4 h-4" /> 分享成绩单
             </a>
           )}
-          <button
+          <ShimmerButton
+            variant="secondary"
             onClick={runBenchmark}
             disabled={running}
-            className="px-4 py-2 bg-[#1e293b] hover:bg-[#334155] disabled:opacity-50 rounded-lg text-sm transition-colors flex items-center gap-2 border border-[#334155]"
+            className="px-4 py-2 rounded-lg text-sm"
           >
             {running ? (
               <>
@@ -288,7 +298,7 @@ export default function Benchmark() {
                 <RefreshCw className="w-4 h-4" /> 重新评测
               </>
             )}
-          </button>
+          </ShimmerButton>
         </div>
       </div>
 
@@ -297,17 +307,27 @@ export default function Benchmark() {
       {result && (
         <>
           {/* 区域1: 成绩单大卡 */}
-          <div className={`rounded-2xl p-6 mb-6 border border-[#334155] ${rankStyle.bg} ${rankStyle.glow}`}>
+          <GlowCard className={`rounded-2xl mb-6 ${rankStyle.bg} ${rankStyle.glow} border-surface-border`}>
+            <div className="p-6">
             <div className="flex items-center gap-6">
               <div className="text-center">
-                <div className={`text-6xl font-black ${rankStyle.text}`}>{result.rank}</div>
+                <motion.div
+                  className={`text-6xl font-black ${rankStyle.text}`}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+                >
+                  {result.rank}
+                </motion.div>
                 <div className="text-xs text-slate-500 mt-1">评级</div>
               </div>
               <div className="flex-1">
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-bold text-white">{result.overallScore}</span>
+                  <span className="text-4xl font-bold text-white tabular-nums">
+                    <AnimatedCounter value={result.overallScore} duration={1500} decimals={0} />
+                  </span>
                   <span className="text-slate-500">/ 100</span>
-                  <Trophy className="w-5 h-5 text-orange-400 ml-1" />
+                  <Trophy className="w-5 h-5 text-accent ml-1" />
                 </div>
                 <p className="text-sm text-slate-300 leading-relaxed">{result.summary}</p>
               </div>
@@ -324,25 +344,26 @@ export default function Benchmark() {
               </div>
               <div>
                 <span className="text-xs text-slate-500">总花费</span>
-                <div className="text-lg font-semibold text-orange-400">¥{result.totalCost.toFixed(2)}</div>
+                <div className="text-lg font-semibold text-accent">¥{result.totalCost.toFixed(2)}</div>
               </div>
               <div>
                 <span className="text-xs text-slate-500">常用模型</span>
                 <div className="text-lg font-semibold text-green-400">{result.topModel}</div>
               </div>
             </div>
-          </div>
+            </div>
+          </GlowCard>
 
           {/* 区域2: 六维雷达 */}
-          <div className="bg-[#1e293b] rounded-xl p-6 border border-[#334155] mb-6">
+          <div className="glass-raised rounded-xl p-6 border border-surface-border mb-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-orange-400" />
-              六维能力雷达
+              <TrendingUp className="w-5 h-5 text-accent" />
+              <GradientText animate={false}>六维能力雷达</GradientText>
             </h3>
             <div className="h-[320px] w-full mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
-                  <PolarGrid stroke="#334155" />
+                  <PolarGrid stroke="rgba(255,255,255,0.08)" />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <PolarRadiusAxis domain={[0, 100]} tick={{ fill: '#475569', fontSize: 10 }} />
                   <Radar
@@ -370,7 +391,7 @@ export default function Benchmark() {
             </div>
 
             {compareResult && (
-              <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-[#334155]">
+              <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-surface-border">
                 {result.dimensions.map(d => {
                   const other = compareResult.dimensions.find(x => x.dimension === d.dimension)
                   const prev = other?.score ?? d.score
@@ -391,7 +412,7 @@ export default function Benchmark() {
                     )
                   }
                   return (
-                    <span key={d.dimension} className="text-xs px-2.5 py-1 rounded-lg bg-slate-500/10 text-slate-500 border border-[#334155]">
+                    <span key={d.dimension} className="text-xs px-2.5 py-1 rounded-lg bg-slate-500/10 text-slate-500 border border-surface-border">
                       {d.label} 0 —
                     </span>
                   )
@@ -418,7 +439,7 @@ export default function Benchmark() {
           </div>
 
           {/* 区域3+4: 对比下拉 + 进化曲线 */}
-          <div className="bg-[#1e293b] rounded-xl p-6 border border-[#334155] mb-6">
+          <div className="glass-raised rounded-xl p-6 border border-surface-border mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <h3 className="text-lg font-semibold">能力进化曲线</h3>
               <label className="flex items-center gap-2 text-sm text-slate-400 shrink-0">
@@ -426,7 +447,7 @@ export default function Benchmark() {
                 <select
                   value={compareId ?? ''}
                   onChange={e => setCompareId(e.target.value || null)}
-                  className="bg-[#0f172a] border border-[#334155] rounded-lg px-3 py-2 text-slate-200 text-sm min-w-[200px] max-w-full"
+                  className="glass-raised border border-surface-border rounded-lg px-3 py-2 text-slate-200 text-sm min-w-[200px] max-w-full bg-surface-raised"
                 >
                   <option value="">不对比</option>
                   {compareOptions.map(h => (
@@ -444,7 +465,7 @@ export default function Benchmark() {
               <div className="h-[280px] w-full mb-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={overallTrendData} margin={{ top: 28, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 12 }} />
                     <YAxis domain={[0, 100]} stroke="#64748b" tick={{ fontSize: 12 }} />
                     <Tooltip {...chartTooltipProps} />
@@ -464,7 +485,7 @@ export default function Benchmark() {
             <button
               type="button"
               onClick={() => setShowDimTrend(v => !v)}
-              className="flex items-center gap-2 text-sm text-orange-400 hover:text-orange-300 mt-4 mb-2 transition-colors"
+              className="flex items-center gap-2 text-sm text-accent hover:opacity-80 mt-4 mb-2 transition-opacity"
             >
               {showDimTrend ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               查看各维度趋势
@@ -474,7 +495,7 @@ export default function Benchmark() {
               <div className="h-[300px] w-full mt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={dimTrendData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 12 }} />
                     <YAxis domain={[0, 100]} stroke="#64748b" tick={{ fontSize: 12 }} />
                     <Tooltip {...chartTooltipProps} />
@@ -507,8 +528,8 @@ export default function Benchmark() {
             )}
           </div>
 
-          <div className="bg-[#1e293b] rounded-xl p-5 border border-[#334155] text-center">
-            <Zap className="w-5 h-5 text-orange-400 mx-auto mb-2" />
+          <div className="glass-raised rounded-xl p-5 border border-surface-border text-center">
+            <Zap className="w-5 h-5 text-accent mx-auto mb-2" />
             <p className="text-xs text-slate-500">
               评测基于本地 Agent 日志离线分析，不调用任何 API，不产生费用。使用龙虾越多，评测越准确。
             </p>

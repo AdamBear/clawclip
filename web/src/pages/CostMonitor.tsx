@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react'
+import FadeIn from '../components/ui/FadeIn'
+import GlowCard from '../components/ui/GlowCard'
+import AnimatedCounter from '../components/ui/AnimatedCounter'
+import { cn } from '../lib/cn'
 
 interface DailyData {
   date: string
@@ -17,6 +21,33 @@ interface CostSummary {
   comparedToLastMonth: number
   budget: { isAlert: boolean; percentage: number; message: string }
   topTasks: { taskId: string; taskName: string; cost: number; tokens: number }[]
+}
+
+const chartTooltipStyle = {
+  background: 'rgba(17,24,39,0.9)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: 12,
+  backdropFilter: 'blur(12px)',
+} as const
+
+function CostSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="glass-raised rounded-xl p-5 border border-surface-border space-y-3">
+            <div className="skeleton h-4 w-20" />
+            <div className="skeleton h-9 w-32" />
+            <div className="skeleton h-3 w-24" />
+          </div>
+        ))}
+      </div>
+      <div className="glass-raised rounded-xl p-6 border border-surface-border">
+        <div className="skeleton h-6 w-28 mb-4" />
+        <div className="skeleton h-[300px] w-full rounded-lg" />
+      </div>
+    </div>
+  )
 }
 
 export default function CostMonitor() {
@@ -60,10 +91,12 @@ export default function CostMonitor() {
           {[7, 14, 30].map(d => (
             <button
               key={d}
+              type="button"
               onClick={() => setDays(d)}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                days === d ? 'bg-orange-500 text-white' : 'bg-[#1e293b] text-slate-400 hover:text-white'
-              }`}
+              className={cn(
+                'px-3 py-1.5 rounded-lg text-sm transition-colors',
+                days === d ? 'bg-accent text-white' : 'glass-raised text-slate-400 hover:text-white hover:bg-surface-overlay',
+              )}
             >
               {d}天
             </button>
@@ -71,11 +104,7 @@ export default function CostMonitor() {
         </div>
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center py-12 text-slate-500">
-          <span className="text-lg">加载中...</span>
-        </div>
-      )}
+      {loading && <CostSkeleton />}
 
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-300 text-sm">
@@ -91,91 +120,98 @@ export default function CostMonitor() {
         </div>
       )}
 
-      {/* 统计卡片 */}
       {!loading && (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-[#1e293b] rounded-xl p-5 border border-[#334155]">
-          <span className="text-sm text-slate-400">总费用</span>
-          <div className="text-2xl font-bold text-orange-400 mt-1">
-            ¥{summary?.totalCost?.toFixed(2) || '0.00'}
-          </div>
-          <div className={`flex items-center gap-1 mt-1 text-xs ${trendColor}`}>
-            <TrendIcon className="w-3 h-3" />
-            <span>{summary?.comparedToLastMonth?.toFixed(1) || 0}% 环比</span>
-          </div>
-        </div>
-        <div className="bg-[#1e293b] rounded-xl p-5 border border-[#334155]">
-          <span className="text-sm text-slate-400">Token 消耗</span>
-          <div className="text-2xl font-bold text-blue-400 mt-1">
-            {summary?.totalTokens?.toLocaleString() || '0'}
-          </div>
-          <div className="text-xs text-slate-500 mt-1">
-            输入 {summary?.inputTokens?.toLocaleString() || 0} / 输出 {summary?.outputTokens?.toLocaleString() || 0}
-          </div>
-        </div>
-        <div className="bg-[#1e293b] rounded-xl p-5 border border-[#334155]">
-          <span className="text-sm text-slate-400">预算使用</span>
-          <div className="text-2xl font-bold text-purple-400 mt-1">
-            {summary?.budget?.percentage?.toFixed(1) || '0'}%
-          </div>
-          <div className="w-full bg-[#334155] rounded-full h-2 mt-2">
-            <div
-              className={`h-2 rounded-full transition-all ${
-                (summary?.budget?.percentage || 0) > 80 ? 'bg-red-500' : 'bg-purple-500'
-              }`}
-              style={{ width: `${Math.min(summary?.budget?.percentage || 0, 100)}%` }}
-            />
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* 趋势图 */}
-      {!loading && (
-      <div className="bg-[#1e293b] rounded-xl p-6 border border-[#334155] mb-6">
-        <h3 className="text-lg font-semibold mb-4">费用趋势</h3>
-        {summary && summary.totalCost === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-            <span className="text-4xl mb-3">📉</span>
-            <p className="text-lg mb-1">暂无费用数据</p>
-            <p className="text-sm">启动 OpenClaw 并使用一段时间后，这里会显示费用趋势图</p>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={daily}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 12 }} />
-              <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
-              <Tooltip
-                contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-                labelStyle={{ color: '#94a3b8' }}
-              />
-              <Line type="monotone" dataKey="cost" stroke="#f97316" strokeWidth={2} dot={false} name="费用 (¥)" />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-      )}
-
-      {/* TOP 消耗任务 */}
-      {!loading && summary?.topTasks && summary.topTasks.length > 0 && (
-        <div className="bg-[#1e293b] rounded-xl p-6 border border-[#334155]">
-          <h3 className="text-lg font-semibold mb-4">高消耗任务 TOP 5</h3>
-          <div className="space-y-3">
-            {summary.topTasks.slice(0, 5).map((task, i) => (
-              <div key={task.taskId} className="flex items-center justify-between py-2 border-b border-[#334155] last:border-0">
-                <div className="flex items-center gap-3">
-                  <span className="text-slate-500 text-sm w-6">{i + 1}.</span>
-                  <span className="text-sm truncate max-w-[300px]">{task.taskName}</span>
+        <FadeIn>
+          {/* 统计卡片 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <GlowCard>
+              <div className="p-5">
+                <span className="text-sm text-slate-400">总费用</span>
+                <div className="text-2xl font-bold text-accent mt-1 tabular-nums">
+                  <AnimatedCounter value={summary?.totalCost ?? 0} prefix="¥" decimals={2} duration={1000} />
                 </div>
-                <div className="text-right">
-                  <span className="text-orange-400 font-medium">¥{task.cost.toFixed(4)}</span>
-                  <span className="text-xs text-slate-500 ml-2">{task.tokens.toLocaleString()} tokens</span>
+                <div className={`flex items-center gap-1 mt-1 text-xs ${trendColor}`}>
+                  <TrendIcon className="w-3 h-3" />
+                  <span>{summary?.comparedToLastMonth?.toFixed(1) ?? 0}% 环比</span>
                 </div>
               </div>
-            ))}
+            </GlowCard>
+            <GlowCard>
+              <div className="p-5">
+                <span className="text-sm text-slate-400">Token 消耗</span>
+                <div className="text-2xl font-bold text-blue-400 mt-1 tabular-nums">
+                  <AnimatedCounter value={summary?.totalTokens ?? 0} decimals={0} duration={1000} />
+                </div>
+                <div className="text-xs text-slate-500 mt-1">
+                  输入 {summary?.inputTokens?.toLocaleString() ?? 0} / 输出 {summary?.outputTokens?.toLocaleString() ?? 0}
+                </div>
+              </div>
+            </GlowCard>
+            <GlowCard>
+              <div className="p-5">
+                <span className="text-sm text-slate-400">预算使用</span>
+                <div className="text-2xl font-bold text-purple-400 mt-1 tabular-nums">
+                  <AnimatedCounter value={summary?.budget?.percentage ?? 0} decimals={1} suffix="%" duration={1000} />
+                </div>
+                <div className="w-full bg-surface-overlay rounded-full h-2 mt-2 border border-surface-border">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      (summary?.budget?.percentage || 0) > 80 ? 'bg-red-500' : 'bg-purple-500'
+                    }`}
+                    style={{ width: `${Math.min(summary?.budget?.percentage || 0, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </GlowCard>
           </div>
-        </div>
+
+          {/* 趋势图 */}
+          <div className="glass-raised rounded-xl p-6 border border-surface-border mb-6">
+            <h3 className="text-lg font-semibold mb-4">费用趋势</h3>
+            {summary && summary.totalCost === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                <span className="text-4xl mb-3">📉</span>
+                <p className="text-lg mb-1">暂无费用数据</p>
+                <p className="text-sm">启动 OpenClaw 并使用一段时间后，这里会显示费用趋势图</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={daily}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    contentStyle={chartTooltipStyle}
+                    labelStyle={{ color: '#94a3b8' }}
+                    itemStyle={{ color: '#e2e8f0' }}
+                  />
+                  <Line type="monotone" dataKey="cost" stroke="#f97316" strokeWidth={2} dot={false} name="费用 (¥)" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* TOP 消耗任务 */}
+          {summary?.topTasks && summary.topTasks.length > 0 && (
+            <div className="glass-raised rounded-xl p-6 border border-surface-border">
+              <h3 className="text-lg font-semibold mb-4">高消耗任务 TOP 5</h3>
+              <div className="space-y-3">
+                {summary.topTasks.slice(0, 5).map((task, i) => (
+                  <div key={task.taskId} className="flex items-center justify-between py-2 border-b border-surface-border last:border-0">
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-sm w-6">{i + 1}.</span>
+                      <span className="text-sm truncate max-w-[300px]">{task.taskName}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-accent font-medium">¥{task.cost.toFixed(4)}</span>
+                      <span className="text-xs text-slate-500 ml-2">{task.tokens.toLocaleString()} tokens</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </FadeIn>
       )}
     </div>
   )

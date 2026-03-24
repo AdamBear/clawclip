@@ -1,5 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { ArrowLeft, Play, Brain, Wrench, CheckCircle, Bot, MessageSquare, Settings, Clock, ChevronDown, ChevronUp, Zap, Share2 } from 'lucide-react'
+import FadeIn from '../components/ui/FadeIn'
+import GlowCard from '../components/ui/GlowCard'
+import { cn } from '../lib/cn'
 
 interface SessionMeta {
   id: string
@@ -72,9 +76,9 @@ function formatStepOffset(stepTime: string, startTime: string): string {
 const STEP_CONFIG: Record<string, { color: string; border: string; bg: string; icon: typeof Brain; label: string }> = {
   user:        { color: 'text-blue-400',   border: 'border-l-blue-500',   bg: 'bg-blue-500/10',   icon: MessageSquare, label: '用户' },
   thinking:    { color: 'text-purple-400', border: 'border-l-purple-500', bg: 'bg-purple-500/10', icon: Brain,          label: '思考' },
-  tool_call:   { color: 'text-orange-400', border: 'border-l-orange-500', bg: 'bg-orange-500/10', icon: Wrench,         label: '工具调用' },
+  tool_call:   { color: 'text-orange-400', border: 'border-l-orange-500', bg: 'bg-accent-dim',     icon: Wrench,         label: '工具调用' },
   tool_result: { color: 'text-green-400',  border: 'border-l-green-500',  bg: 'bg-green-500/10',  icon: CheckCircle,    label: '工具结果' },
-  response:    { color: 'text-orange-400', border: 'border-l-orange-500', bg: 'bg-orange-500/10', icon: Bot,            label: '回复' },
+  response:    { color: 'text-orange-400', border: 'border-l-orange-500', bg: 'bg-accent-dim',     icon: Bot,            label: '回复' },
   system:      { color: 'text-slate-400',  border: 'border-l-slate-500',  bg: 'bg-slate-500/10',  icon: Settings,       label: '系统' },
 }
 
@@ -88,7 +92,7 @@ function CollapsibleText({ text, maxLines = 3 }: { text: string; maxLines?: numb
   return (
     <div>
       <pre className={`text-sm text-slate-300 whitespace-pre-wrap break-words ${!expanded ? 'line-clamp-3' : ''}`}>{text}</pre>
-      <button onClick={() => setExpanded(!expanded)} className="text-xs text-orange-400 hover:text-orange-300 mt-1 flex items-center gap-1">
+      <button type="button" onClick={() => setExpanded(!expanded)} className="text-xs text-accent hover:opacity-80 mt-1 flex items-center gap-1">
         {expanded ? <><ChevronUp className="w-3 h-3" /> 收起</> : <><ChevronDown className="w-3 h-3" /> 展开全部</>}
       </button>
     </div>
@@ -101,40 +105,95 @@ function StepCard({ step, startTime }: { step: SessionStep; startTime: string })
   const tokens = step.inputTokens + step.outputTokens
 
   return (
-    <div className="flex gap-4">
-      <div className="flex flex-col items-center shrink-0 w-16">
-        <span className="text-xs text-slate-500 font-mono">{formatStepOffset(step.timestamp, startTime)}</span>
-        <div className={`w-3 h-3 rounded-full mt-2 ${config.bg} border-2 ${config.border.replace('border-l-', 'border-')}`} />
-        <div className="flex-1 w-px bg-[#334155]" />
-      </div>
-      <div className={`flex-1 bg-[#1e293b] rounded-xl p-4 border border-[#334155] border-l-4 ${config.border} mb-3`}>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className={`p-1.5 rounded-lg ${config.bg}`}>
-              <Icon className={`w-4 h-4 ${config.color}`} />
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(step.index * 0.04, 0.5), type: 'spring', stiffness: 380, damping: 28 }}
+    >
+      <div className="flex gap-4">
+        <div className="flex flex-col items-center shrink-0 w-16">
+          <span className="text-xs text-slate-500 font-mono">{formatStepOffset(step.timestamp, startTime)}</span>
+          <div className={`w-3 h-3 rounded-full mt-2 ${config.bg} border-2 ${config.border.replace('border-l-', 'border-')}`} />
+          <div className="flex-1 w-px bg-surface-border" />
+        </div>
+        <div className={cn('flex-1 glass-raised rounded-xl p-4 border border-surface-border border-l-4 mb-3', config.border)}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className={`p-1.5 rounded-lg ${config.bg}`}>
+                <Icon className={`w-4 h-4 ${config.color}`} />
+              </div>
+              <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
+              {step.toolName && <span className="text-xs px-2 py-0.5 bg-surface-overlay rounded-full text-slate-400 border border-surface-border">{step.toolName}</span>}
+              {step.model && <span className="text-xs text-slate-500">{step.model}</span>}
             </div>
-            <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
-            {step.toolName && <span className="text-xs px-2 py-0.5 bg-[#334155] rounded-full text-slate-400">{step.toolName}</span>}
-            {step.model && <span className="text-xs text-slate-500">{step.model}</span>}
+            {tokens > 0 && (
+              <span className="text-xs text-slate-500">{tokens.toLocaleString()} tokens · ¥{step.cost.toFixed(4)}</span>
+            )}
           </div>
-          {tokens > 0 && (
-            <span className="text-xs text-slate-500">{tokens.toLocaleString()} tokens · ¥{step.cost.toFixed(4)}</span>
+          {step.content && <CollapsibleText text={step.content} />}
+          {step.toolInput && (
+            <div className="mt-2 p-2 glass-raised rounded text-xs border border-surface-border">
+              <span className="text-slate-500">输入: </span>
+              <CollapsibleText text={step.toolInput} maxLines={2} />
+            </div>
+          )}
+          {step.toolOutput && (
+            <div className="mt-2 p-2 glass-raised rounded text-xs border border-surface-border">
+              <span className="text-slate-500">输出: </span>
+              <CollapsibleText text={step.toolOutput} maxLines={2} />
+            </div>
           )}
         </div>
-        {step.content && <CollapsibleText text={step.content} />}
-        {step.toolInput && (
-          <div className="mt-2 p-2 bg-[#0f172a] rounded text-xs">
-            <span className="text-slate-500">输入: </span>
-            <CollapsibleText text={step.toolInput} maxLines={2} />
-          </div>
-        )}
-        {step.toolOutput && (
-          <div className="mt-2 p-2 bg-[#0f172a] rounded text-xs">
-            <span className="text-slate-500">输出: </span>
-            <CollapsibleText text={step.toolOutput} maxLines={2} />
-          </div>
-        )}
       </div>
+    </motion.div>
+  )
+}
+
+function ListSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[0, 1, 2].map(i => (
+        <div key={i} className="rounded-xl border border-surface-border overflow-hidden glass-raised p-5 space-y-3">
+          <div className="skeleton h-5 w-3/4 max-w-md" />
+          <div className="skeleton h-4 w-1/3 max-w-xs" />
+          <div className="flex gap-2">
+            <div className="skeleton h-6 w-16 rounded-full" />
+            <div className="skeleton h-6 w-20 rounded-full" />
+          </div>
+          <div className="skeleton h-4 w-full max-w-lg" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="glass-raised rounded-2xl p-6 border border-surface-border space-y-4">
+        <div className="skeleton h-7 w-2/3 max-w-xl" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="space-y-2">
+              <div className="skeleton h-3 w-12" />
+              <div className="skeleton h-5 w-24" />
+            </div>
+          ))}
+        </div>
+      </div>
+      {[0, 1, 2].map(i => (
+        <div key={i} className="flex gap-4">
+          <div className="w-16 flex flex-col items-center gap-2">
+            <div className="skeleton h-3 w-10" />
+            <div className="skeleton w-3 h-3 rounded-full" />
+            <div className="flex-1 w-px skeleton min-h-[80px]" />
+          </div>
+          <div className="flex-1 glass-raised rounded-xl p-4 border border-surface-border space-y-3">
+            <div className="skeleton h-4 w-32" />
+            <div className="skeleton h-16 w-full" />
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -211,7 +270,7 @@ export default function Replay() {
     return (
       <div>
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => { setView('list'); setReplay(null) }} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+          <button type="button" onClick={() => { setView('list'); setReplay(null) }} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" /> 返回列表
           </button>
           {replay && (
@@ -219,19 +278,19 @@ export default function Replay() {
               href={`/share/replay/${encodeURIComponent(replay.meta.id)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-accent hover:opacity-90 rounded-lg text-sm font-medium transition-opacity text-white"
             >
               <Share2 className="w-4 h-4" /> 分享卡片
             </a>
           )}
         </div>
 
-        {loading && <div className="text-center py-12 text-slate-500">加载中...</div>}
+        {loading && <DetailSkeleton />}
         {error && <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-300 text-sm">{error}</div>}
 
         {replay && (
           <>
-            <div className="bg-gradient-to-r from-orange-500/10 via-red-500/5 to-transparent rounded-2xl p-6 mb-6 border border-orange-500/20">
+            <div className="glass-raised rounded-2xl p-6 mb-6 border border-surface-border border-accent/20">
               <h2 className="text-lg font-bold mb-3 truncate">{replay.meta.summary}</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
@@ -244,7 +303,7 @@ export default function Replay() {
                 </div>
                 <div>
                   <span className="text-slate-500">花费</span>
-                  <div className="text-orange-400 font-medium">¥{replay.meta.totalCost.toFixed(4)}</div>
+                  <div className="text-accent font-medium">¥{replay.meta.totalCost.toFixed(4)}</div>
                 </div>
                 <div>
                   <span className="text-slate-500">Token</span>
@@ -253,7 +312,7 @@ export default function Replay() {
               </div>
               <div className="flex flex-wrap gap-2 mt-3">
                 {replay.meta.modelUsed.map(m => (
-                  <span key={m} className="text-xs px-2 py-1 bg-[#334155] rounded-full text-slate-300">{m}</span>
+                  <span key={m} className="text-xs px-2 py-1 bg-surface-overlay rounded-full text-slate-300 border border-surface-border">{m}</span>
                 ))}
               </div>
             </div>
@@ -264,12 +323,12 @@ export default function Replay() {
               ))}
             </div>
 
-            <div className="bg-[#1e293b] rounded-xl p-5 border border-[#334155] text-center">
-              <Zap className="w-5 h-5 text-orange-400 mx-auto mb-2" />
+            <div className="glass-raised rounded-xl p-5 border border-surface-border text-center">
+              <Zap className="w-5 h-5 text-accent mx-auto mb-2" />
               <p className="text-sm text-slate-400">
                 本次会话共 <span className="text-white font-medium">{replay.meta.stepCount} 步</span>，
                 用时 <span className="text-white font-medium">{formatDuration(replay.meta.durationMs)}</span>，
-                花费 <span className="text-orange-400 font-medium">¥{replay.meta.totalCost.toFixed(4)}</span>
+                花费 <span className="text-accent font-medium">¥{replay.meta.totalCost.toFixed(4)}</span>
               </p>
             </div>
           </>
@@ -288,9 +347,10 @@ export default function Replay() {
           <button
             type="button"
             onClick={() => setSelectedTag('全部')}
-            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-              selectedTag === '全部' ? 'bg-orange-500 text-white' : 'bg-[#1e293b] text-slate-400 hover:text-white'
-            }`}
+            className={cn(
+              'px-4 py-2 rounded-lg text-sm transition-colors',
+              selectedTag === '全部' ? 'bg-accent text-white' : 'glass-raised text-slate-400 hover:text-white hover:bg-surface-overlay',
+            )}
           >
             全部
           </button>
@@ -299,9 +359,10 @@ export default function Replay() {
               key={t.tag}
               type="button"
               onClick={() => setSelectedTag(t.tag)}
-              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                selectedTag === t.tag ? 'bg-orange-500 text-white' : 'bg-[#1e293b] text-slate-400 hover:text-white'
-              }`}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm transition-colors',
+                selectedTag === t.tag ? 'bg-accent text-white' : 'glass-raised text-slate-400 hover:text-white hover:bg-surface-overlay',
+              )}
             >
               {t.tag}
             </button>
@@ -309,7 +370,7 @@ export default function Replay() {
         </div>
       )}
 
-      {loading && <div className="text-center py-12 text-slate-500">加载中...</div>}
+      {loading && <ListSkeleton />}
       {error && <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-300 text-sm">{error}</div>}
 
       {!loading && !error && sessions.length === 0 && (
@@ -326,47 +387,51 @@ export default function Replay() {
 
       {!loading && !error && filteredSessions.length > 0 && (
         <div className="space-y-3">
-          {filteredSessions.map(session => (
-            <button
-              key={session.id}
-              onClick={() => openSession(session.id)}
-              className="w-full bg-[#1e293b] rounded-xl p-5 border border-[#334155] hover:border-orange-500/30 transition-all text-left group"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="font-medium text-white group-hover:text-orange-400 transition-colors truncate pr-4">
-                  {session.summary || '无标题会话'}
-                </h3>
-                <span className="text-xs text-slate-500 shrink-0">{formatRelativeTime(session.startTime)}</span>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-slate-500 mb-3">
-                <span className="flex items-center gap-1"><Bot className="w-3 h-3" />{session.agentName}</span>
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDuration(session.durationMs)}</span>
-                <span className="flex items-center gap-1"><Play className="w-3 h-3" />{session.stepCount} 步</span>
-              </div>
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex flex-wrap gap-1.5 items-center">
-                  {session.modelUsed.slice(0, 3).map(m => (
-                    <span key={m} className="text-xs px-2 py-0.5 bg-[#334155] rounded-full text-slate-400">{m}</span>
-                  ))}
-                  {(sessionTags[session.id] ?? []).map(tag => {
-                    const tagColor = tagColorByTag.get(tag) ?? '#94a3b8'
-                    return (
-                      <span
-                        key={tag}
-                        className="text-xs px-2 py-0.5 rounded-full"
-                        style={{ backgroundColor: `${tagColor}20`, color: tagColor }}
-                      >
-                        {tag}
-                      </span>
-                    )
-                  })}
-                </div>
-                <div className="flex items-center gap-3 text-xs shrink-0">
-                  <span className="text-blue-400">{session.totalTokens.toLocaleString()} tokens</span>
-                  <span className="text-orange-400 font-medium">¥{session.totalCost.toFixed(4)}</span>
-                </div>
-              </div>
-            </button>
+          {filteredSessions.map((session, index) => (
+            <FadeIn key={session.id} delay={Math.min(index * 0.05, 0.5)}>
+              <GlowCard className="w-full hover:border-accent/30">
+                <button
+                  type="button"
+                  onClick={() => openSession(session.id)}
+                  className="w-full rounded-xl p-5 text-left group bg-transparent border-0 text-inherit cursor-pointer"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium text-white group-hover:text-accent transition-colors truncate pr-4">
+                      {session.summary || '无标题会话'}
+                    </h3>
+                    <span className="text-xs text-slate-500 shrink-0">{formatRelativeTime(session.startTime)}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-slate-500 mb-3">
+                    <span className="flex items-center gap-1"><Bot className="w-3 h-3" />{session.agentName}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDuration(session.durationMs)}</span>
+                    <span className="flex items-center gap-1"><Play className="w-3 h-3" />{session.stepCount} 步</span>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      {session.modelUsed.slice(0, 3).map(m => (
+                        <span key={m} className="text-xs px-2 py-0.5 bg-surface-overlay rounded-full text-slate-400 border border-surface-border">{m}</span>
+                      ))}
+                      {(sessionTags[session.id] ?? []).map(tag => {
+                        const tagColor = tagColorByTag.get(tag) ?? '#94a3b8'
+                        return (
+                          <span
+                            key={tag}
+                            className="text-xs px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: `${tagColor}20`, color: tagColor }}
+                          >
+                            {tag}
+                          </span>
+                        )
+                      })}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs shrink-0">
+                      <span className="text-blue-400">{session.totalTokens.toLocaleString()} tokens</span>
+                      <span className="text-accent font-medium">¥{session.totalCost.toFixed(4)}</span>
+                    </div>
+                  </div>
+                </button>
+              </GlowCard>
+            </FadeIn>
           ))}
         </div>
       )}
