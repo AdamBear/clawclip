@@ -60,8 +60,8 @@ Express + TypeScript | React 18 + Vite + Tailwind CSS | Recharts | Framer Motion
 - [x] 成本监控 + 预算告警
 - [x] 词云可视化 + 自动标签
 - [x] 分享卡片 + Landing Page
-- [ ] 知识库导入导出
-- [ ] 排行榜
+- [x] 知识库导入导出 + 全文搜索
+- [x] **排行榜（提交分数 + 全网排名）**
 - [ ] 智能路由省钱
 
 ## 交流
