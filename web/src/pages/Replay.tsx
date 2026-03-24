@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Play, Pause, Brain, Wrench, CheckCircle, Bot, MessageSquare, Settings, Clock, ChevronDown, ChevronUp, Zap, Share2 } from 'lucide-react'
+import { ArrowLeft, Play, Pause, Brain, Wrench, CheckCircle, Bot, MessageSquare, Settings, Clock, ChevronDown, ChevronUp, Zap, Share2, Download, FileText } from 'lucide-react'
 import FadeIn from '../components/ui/FadeIn'
 import GlowCard from '../components/ui/GlowCard'
 import { cn } from '../lib/cn'
@@ -380,19 +380,35 @@ export default function Replay() {
 
     return (
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <button type="button" onClick={() => { setView('list'); setReplay(null) }} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" /> 返回列表
           </button>
           {replay && (
-            <a
-              href={`/share/replay/${encodeURIComponent(replay.meta.id)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-accent hover:opacity-90 rounded-lg text-sm font-medium transition-opacity text-white"
-            >
-              <Share2 className="w-4 h-4" /> 分享卡片
-            </a>
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <a
+                href={`/api/knowledge/export/${encodeURIComponent(replay.meta.id)}?format=json`}
+                download
+                className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-400 hover:text-blue-400 card transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" /> JSON
+              </a>
+              <a
+                href={`/api/knowledge/export/${encodeURIComponent(replay.meta.id)}?format=markdown`}
+                download
+                className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-400 hover:text-blue-400 card transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5" /> MD
+              </a>
+              <a
+                href={`/share/replay/${encodeURIComponent(replay.meta.id)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-accent hover:opacity-90 rounded-lg text-sm font-medium transition-opacity text-white"
+              >
+                <Share2 className="w-4 h-4" /> 分享卡片
+              </a>
+            </div>
           )}
         </div>
 

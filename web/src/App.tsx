@@ -6,10 +6,11 @@ import Benchmark from './pages/Benchmark'
 import CostMonitor from './pages/CostMonitor'
 import SkillManager from './pages/SkillManager'
 import TemplateMarket from './pages/TemplateMarket'
-import { LayoutDashboard, Play, Trophy, DollarSign, Puzzle, Store, ArrowLeft } from 'lucide-react'
+import Knowledge from './pages/Knowledge'
+import { LayoutDashboard, Play, Trophy, DollarSign, Puzzle, Store, ArrowLeft, Database } from 'lucide-react'
 import { cn } from './lib/cn'
 
-export type Tab = 'dashboard' | 'replay' | 'benchmark' | 'cost' | 'skills' | 'templates'
+export type Tab = 'dashboard' | 'replay' | 'benchmark' | 'cost' | 'skills' | 'templates' | 'knowledge'
 
 const tabs = [
   { id: 'dashboard' as const, name: '仪表盘', icon: LayoutDashboard },
@@ -18,6 +19,7 @@ const tabs = [
   { id: 'cost' as const, name: '费用', icon: DollarSign },
   { id: 'skills' as const, name: 'Skills', icon: Puzzle },
   { id: 'templates' as const, name: '模板', icon: Store },
+  { id: 'knowledge' as const, name: '知识库', icon: Database },
 ]
 
 function App() {
@@ -93,6 +95,7 @@ function App() {
           {activeTab === 'cost' && <CostMonitor />}
           {activeTab === 'skills' && <SkillManager />}
           {activeTab === 'templates' && <TemplateMarket />}
+          {activeTab === 'knowledge' && <Knowledge />}
         </main>
       </div>
     </div>
