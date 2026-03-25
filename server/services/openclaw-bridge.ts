@@ -14,6 +14,21 @@ import { sessionParser } from './session-parser.js';
 
 const execFileAsync = promisify(execFile);
 
+type CliDisplayName = 'openclaw' | 'zeroclaw';
+
+/** Windows 下 npm 全局安装常为 openclaw.cmd；裸命令在部分 PATH 下不可用 */
+function cliStatusProbeCandidates(): { file: string; display: CliDisplayName }[] {
+  const out: { file: string; display: CliDisplayName }[] = [];
+  const win = process.platform === 'win32';
+  for (const name of ['openclaw', 'zeroclaw'] as const) {
+    out.push({ file: name, display: name });
+    if (win) {
+      out.push({ file: `${name}.cmd`, display: name });
+    }
+  }
+  return out;
+}
+
 /** 校验 skill 名称，防止命令注入和路径穿越 */
 function isValidSkillName(name: string): boolean {
   return /^[a-zA-Z0-9_-]+$/.test(name) && name.length > 0 && name.length < 100;
@@ -83,17 +98,27 @@ export class OpenClawBridge {
   async getStatus(): Promise<OpenClawStatus> {
     const dataRoots = collectRootStatuses();
     const counts = countSessionJsonlFiles();
-    const hasRealSessionData = sessionParser.hasRealSessions();
+    const { totalJsonlFiles, parsableSessionCount } = sessionParser.getJsonlVersusParsableStats(counts.total);
+    const hasRealSessionData = parsableSessionCount > 0;
+    const unparsableJsonlFileCount = Math.max(0, totalJsonlFiles - parsableSessionCount);
+    let sessionDataHintZh: string | undefined;
+    let sessionDataHintEn: string | undefined;
+    if (totalJsonlFiles > 0 && parsableSessionCount === 0) {
+      sessionDataHintZh =
+        '磁盘上发现了会话 .jsonl 文件，但无法解析为可展示的步骤（可能为空、格式不兼容、或仅含 session 元数据）。产品仍可用；请确认 OpenClaw 转写格式与虾片版本一致。';
+      sessionDataHintEn =
+        'Found .jsonl session files on disk, but none could be parsed into timeline steps (empty, incompatible format, or metadata-only). The app still works; check that your OpenClaw export matches ClawClip’s expected JSONL shape.';
+    }
 
     let cliCommand: 'openclaw' | 'zeroclaw' | null = null;
     let running = false;
     let version = 'unknown';
 
-    for (const cmd of ['openclaw', 'zeroclaw'] as const) {
+    for (const cand of cliStatusProbeCandidates()) {
       try {
-        const r = await execFileAsync(cmd, ['status', '--all'], { timeout: 5000 });
+        const r = await execFileAsync(cand.file, ['status', '--all'], { timeout: 5000 });
         const stdout = r.stdout || '';
-        cliCommand = cmd;
+        cliCommand = cand.display;
         running = stdout.includes('running') || stdout.includes('Gateway') || stdout.includes('在线');
         const versionMatch = stdout.match(/version[:\s]+([^\s\n]+)/i);
         if (versionMatch) version = versionMatch[1]!;
@@ -134,7 +159,11 @@ export class OpenClawBridge {
       cliCommand,
       dataRoots,
       totalSessionFiles: counts.total,
+      parsableSessionCount,
+      unparsableJsonlFileCount,
       hasRealSessionData,
+      sessionDataHintZh,
+      sessionDataHintEn,
       ecosystemNotes,
     };
   }
@@ -214,28 +243,46 @@ export class OpenClawBridge {
     }
   }
 
-  /** 卸载 Skill（仅从主数据根删除，避免误删多根副本） */
+  /**
+   * 卸载 Skill：按与列表相同的根顺序，在每个数据根的 skills 下删除同名目录。
+   * 多根同名则全部移除，避免只删主根导致「列表有、卸载报不存在」。
+   */
   async uninstallSkill(name: string): Promise<{ success: boolean; message: string }> {
     if (!isValidSkillName(name)) {
       return { success: false, message: '无效的 Skill 名称' };
     }
 
-    const skillsDir = path.join(getPrimaryLobsterHome(), 'skills');
-    const skillPath = path.join(skillsDir, name);
-    const resolved = path.resolve(skillPath);
-    if (!resolved.startsWith(path.resolve(skillsDir))) {
-      return { success: false, message: '非法路径' };
+    const roots = getLobsterDataRoots();
+    const homes =
+      roots.length > 0 ? roots.map(r => r.homeDir) : [getPrimaryLobsterHome()];
+
+    let removed = 0;
+    let lastError: string | null = null;
+
+    for (const home of homes) {
+      const skillsDir = path.join(home, 'skills');
+      const skillPath = path.join(skillsDir, name);
+      const resolved = path.resolve(skillPath);
+      if (!resolved.startsWith(path.resolve(skillsDir))) {
+        continue;
+      }
+      if (!fs.existsSync(skillPath)) continue;
+      try {
+        fs.rmSync(skillPath, { recursive: true });
+        removed++;
+      } catch (e) {
+        lastError = e instanceof Error ? e.message : String(e);
+      }
     }
 
-    if (!fs.existsSync(skillPath)) {
-      return { success: false, message: `Skill ${name} 不存在` };
+    if (removed > 0) {
+      const suffix = removed > 1 ? `（${removed} 处）` : '';
+      return { success: true, message: `${name} 已卸载${suffix}` };
     }
-    try {
-      fs.rmSync(skillPath, { recursive: true });
-      return { success: true, message: `${name} 已卸载` };
-    } catch (e) {
-      return { success: false, message: `卸载失败: ${e instanceof Error ? e.message : e}` };
+    if (lastError) {
+      return { success: false, message: `卸载失败: ${lastError}` };
     }
+    return { success: false, message: `Skill ${name} 不存在` };
   }
 }
 

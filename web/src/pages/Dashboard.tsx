@@ -34,7 +34,11 @@ interface StatusData {
   cliCommand?: 'openclaw' | 'zeroclaw' | null
   dataRoots?: LobsterDataRootStatus[]
   totalSessionFiles?: number
+  parsableSessionCount?: number
+  unparsableJsonlFileCount?: number
   hasRealSessionData?: boolean
+  sessionDataHintZh?: string
+  sessionDataHintEn?: string
   ecosystemNotes?: EcosystemNote[]
 }
 
@@ -87,6 +91,12 @@ export default function Dashboard({ onNavigate }: Props) {
       .then(d => setSessions(Array.isArray(d) ? d : []))
       .finally(() => setSessionsLoading(false))
   }, [])
+
+  const jsonlTotal = status?.totalSessionFiles ?? 0
+  const parsableCount = status?.parsableSessionCount ?? 0
+  /** 磁盘有 .jsonl 但解析不出步骤（与「无日志仅用 Demo」区分） */
+  const hasJsonlButUnparsed =
+    Boolean(status) && jsonlTotal > 0 && parsableCount === 0 && !status?.hasRealSessionData
 
   const hour = new Date().getHours()
   const greetingKey =
@@ -143,9 +153,21 @@ export default function Dashboard({ onNavigate }: Props) {
     },
     {
       label: t('dashboard.stat.sessionsLabel'),
-      value: String(status?.totalSessionFiles ?? 0),
-      numValue: status?.totalSessionFiles ?? 0,
-      sub: status?.hasRealSessionData ? t('compat.data.real') : t('compat.data.demo'),
+      value:
+        loading
+          ? t('dashboard.status.checking')
+          : jsonlTotal > 0
+            ? `${parsableCount} / ${jsonlTotal}`
+            : String(jsonlTotal),
+      sub: loading
+        ? null
+        : status?.hasRealSessionData
+          ? t('compat.data.real')
+          : hasJsonlButUnparsed
+            ? locale === 'en'
+              ? 'Parsable sessions / JSONL files on disk'
+              : '可解析会话数 / 磁盘上的 jsonl 文件数'
+            : t('compat.data.demo'),
       icon: Activity,
       variant: 'card-purple',
       color: 'text-violet-400',
@@ -168,7 +190,7 @@ export default function Dashboard({ onNavigate }: Props) {
         </p>
       </div>
 
-      {!loading && status && !status.hasRealSessionData && (
+      {!loading && status && !status.hasRealSessionData && jsonlTotal === 0 && (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90 animate-fade-in">
           {t('demo.hint.dashboard')}
         </div>
@@ -185,12 +207,28 @@ export default function Dashboard({ onNavigate }: Props) {
         >
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-between">
             <span className={status.hasRealSessionData ? 'text-emerald-300/90' : 'text-amber-200/90'}>
-              {status.hasRealSessionData ? t('compat.data.real') : t('compat.data.demo')}
+              {status.hasRealSessionData
+                ? t('compat.data.real')
+                : hasJsonlButUnparsed
+                  ? locale === 'en'
+                    ? 'JSONL files found — none parse into session steps yet'
+                    : '发现 .jsonl 文件，尚无法解析为可展示会话'
+                  : t('compat.data.demo')}
             </span>
             <span className="text-xs text-slate-500">
-              {t('compat.sessions')}: <span className="text-slate-400 font-mono">{status.totalSessionFiles ?? 0}</span>
+              {t('compat.sessions')}:{' '}
+              <span className="text-slate-400 font-mono">
+                {jsonlTotal > 0 ? `${parsableCount} / ${jsonlTotal}` : jsonlTotal}
+              </span>
             </span>
           </div>
+          {(status.sessionDataHintZh || status.sessionDataHintEn) && (
+            <p className="mt-2 text-xs text-amber-200/75 leading-relaxed">
+              {locale === 'zh'
+                ? status.sessionDataHintZh ?? status.sessionDataHintEn
+                : status.sessionDataHintEn ?? status.sessionDataHintZh}
+            </p>
+          )}
           {(status.dataRoots?.length ?? 0) > 0 && (
             <div className="mt-2 pt-2 border-t border-white/[0.06]">
               <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1.5">{t('compat.roots')}</p>

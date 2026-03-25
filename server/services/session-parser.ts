@@ -4,6 +4,7 @@ import { DEFAULT_MODEL_PRICING } from '../types/index.js';
 import type { SessionMeta, SessionReplay, SessionStep } from '../types/replay.js';
 import { DEMO_SESSIONS } from './demo-sessions.js';
 import {
+  countSessionJsonlFiles,
   getLobsterDataRoots,
   listAgentSessionEntries,
   readJsonlFileSafe,
@@ -179,10 +180,12 @@ function pickToolCalls(body: JsonlLine, outer: JsonlLine): unknown[] | undefined
   return Array.isArray(a) ? a : undefined;
 }
 
+type LineStepResult = SessionStep | SessionStep[] | null;
+
 /**
- * 从一行 JSONL 揪出一步；认不出来的行交给 null
+ * 从一行 JSONL 揪出一步；认不出来的行交给 null。assistant 一条里多个 tool_calls 时返回多步。
  */
-function lineToStep(obj: JsonlLine, index: number): SessionStep | SessionStep[] | null {
+function lineToStep(obj: JsonlLine, index: number): LineStepResult {
   const outerType = typeof obj.type === 'string' ? obj.type : undefined;
 
   if (outerType === 'session') return null;
@@ -292,25 +295,23 @@ function lineToStep(obj: JsonlLine, index: number): SessionStep | SessionStep[] 
 
     const toolCalls = pickToolCalls(body, obj);
     if (toolCalls && toolCalls.length > 0) {
-      const steps: SessionStep[] = [];
-      for (let ti = 0; ti < toolCalls.length; ti++) {
-        const tc = toolCalls[ti] as Record<string, unknown>;
-        const name = toolCallName(tc);
-        const toolInput = toolCallInput(tc);
-        steps.push({
-          index: index + ti,
+      return toolCalls.map((tc, i) => {
+        const tcr = tc as Record<string, unknown>;
+        const n = toolCallName(tcr);
+        const tin = toolCallInput(tcr);
+        return {
+          index: index + i,
           timestamp,
-          type: 'tool_call',
-          content: ti === 0 ? (text || '') : '',
+          type: 'tool_call' as const,
+          content: i === 0 ? (text || '') : '',
           model,
-          toolName: name,
-          toolInput,
+          toolName: n,
+          toolInput: tin,
           ...base(),
           cost: 0,
           durationMs: 0,
-        });
-      }
-      return steps;
+        };
+      });
     }
     if (text.length > 0 || reasoningExtra.length > 0) {
       return {
@@ -466,11 +467,10 @@ function parseJsonlFile(
       continue;
     }
     const stepOrSteps = lineToStep(obj, draft.length);
-    if (!stepOrSteps) continue;
-    if (Array.isArray(stepOrSteps)) {
-      for (const s of stepOrSteps) draft.push(s);
-    } else {
-      draft.push(stepOrSteps);
+    if (stepOrSteps == null) continue;
+    const batch = Array.isArray(stepOrSteps) ? stepOrSteps : [stepOrSteps];
+    for (const s of batch) {
+      draft.push(s);
     }
   }
 
@@ -593,9 +593,22 @@ export class SessionParser {
     return null;
   }
 
-  /** 当前是否没有任何真实会话文件（用于状态 API） */
+  /**
+   * 「真实数据」= 至少有一个 .jsonl 被解析为含 ≥1 步的会话（非仅发现文件）。
+   */
   hasRealSessions(): boolean {
     return this.getCachedReplays().length > 0;
+  }
+
+  /**
+   * 统一 jsonl 文件数与可解析会话数。若已调用 `countSessionJsonlFiles()`，传入其 `total` 可避免重复扫盘。
+   */
+  getJsonlVersusParsableStats(precomputedTotalJsonl?: number): {
+    totalJsonlFiles: number;
+    parsableSessionCount: number;
+  } {
+    const totalJsonlFiles = precomputedTotalJsonl ?? countSessionJsonlFiles().total;
+    return { totalJsonlFiles, parsableSessionCount: this.getRealReplays().length };
   }
 
   getRealReplays(): SessionReplay[] {

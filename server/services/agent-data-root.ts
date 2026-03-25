@@ -219,7 +219,10 @@ export function listAgentSessionEntries(root: LobsterDataRoot): AgentSessionsEnt
 
 const MAX_JSONL_BYTES = 28 * 1024 * 1024;
 
-/** 统计各根下 jsonl 会话文件数量（用于状态 API） */
+/**
+ * 统计各根下「文件名以 .jsonl 结尾」的数量（用于状态 API）。
+ * 与「可解析为至少一步」的会话数口径不同，后者由 SessionParser 基于解析结果统计。
+ */
 export function countSessionJsonlFiles(): { total: number; byRoot: Record<string, number> } {
   const byRoot: Record<string, number> = {};
   let total = 0;

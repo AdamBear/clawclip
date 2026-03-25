@@ -201,8 +201,15 @@ export interface OpenClawStatus {
   cliCommand: 'openclaw' | 'zeroclaw' | null;
   dataRoots: LobsterDataRootStatus[];
   totalSessionFiles: number;
+  /** 能解析出至少一步的会话数（与 totalSessionFiles 可能不同） */
+  parsableSessionCount?: number;
+  /** 磁盘上有 .jsonl 但无法解析为可展示会话的文件数（可选，由服务端推导） */
+  unparsableJsonlFileCount?: number;
   /** 是否已读取到真实会话 JSONL（非内置 Demo） */
   hasRealSessionData: boolean;
+  /** 存在 jsonl 但均不可解析时的简短说明（中英分字段，便于前端直接展示） */
+  sessionDataHintZh?: string;
+  sessionDataHintEn?: string;
   /** 存储形态与后续适配说明（双语） */
   ecosystemNotes: EcosystemNote[];
 }

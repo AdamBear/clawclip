@@ -46,10 +46,13 @@ export default function SkillManager() {
   }
 
   const doUninstall = async (name: string) => {
+    setError(null)
     try {
-      const result = await apiPost<{ success: boolean }>('/api/skills/uninstall', { name })
+      const result = await apiPost<{ success: boolean; message?: string }>('/api/skills/uninstall', { name })
       if (result.success) {
         setSkills(prev => prev.filter(s => s.name !== name))
+      } else {
+        setError(result.message ?? t('skills.error.network'))
       }
     } catch {
       setError(t('skills.error.network'))
