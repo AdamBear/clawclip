@@ -7,6 +7,20 @@ Version scheme: `YYYY.MM.DD` (CalVer, daily). Patch suffix `.N` for same-day rel
 
 ---
 
+## [2026.03.25] — 2026-03-25
+
+### Added
+- **Replay Smart Insights**: 7-rule diagnostic engine analyzes each session replay for patterns (thinking waste, tool retry loops, model mixing, long sessions, cost concentration, tool success rate, token efficiency). Collapsible UI panel with step-linked insights.
+- **Prompt Insight page**: cross-session prompt efficiency analysis — avg prompt length, output/input ratio, tool trigger rate, efficient/wasteful session detection. New sidebar tab.
+- **Data Export API**: `GET /api/export/sessions`, `/costs`, `/benchmark` with CSV and JSON format support for BI tool integration.
+- **Multi-Agent Compare**: side-by-side session comparison (2-5 sessions) with bar chart visualization. New sidebar tab + `POST /api/replay/compare` API.
+- **Alert Webhook**: configurable webhook for budget alerts and high-cost session notifications. Compatible with DingTalk, Feishu, Slack, generic webhooks. Config + history + test APIs.
+- **Version infrastructure**: CHANGELOG.md, CalVer `YYYY.MM.DD` convention, release badge, CONTRIBUTING versioning docs.
+
+[2026.03.25]: https://github.com/Ylsssq926/clawclip/compare/v0.1.0...2026.03.25
+
+---
+
 ## [v0.1.0] — 2026-03-25
 
 First stable release.
