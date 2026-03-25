@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { analyticsEngine } from '../services/analytics-engine.js';
+import { getPromptInsights } from '../services/prompt-analyzer.js';
 
 const router = Router();
 
@@ -40,6 +41,21 @@ router.get('/session-tags', (_req, res, next) => {
   try {
     const map = analyticsEngine.getSessionTags();
     res.json(map);
+  } catch (e) {
+    next(e);
+  }
+});
+
+/** GET /api/analytics/prompt-insights?days=30 — Prompt 效率分析 */
+router.get('/prompt-insights', (req, res, next) => {
+  try {
+    const rawDays = req.query.days;
+    let days: number | undefined;
+    if (rawDays !== undefined && rawDays !== '') {
+      const n = parseInt(String(rawDays), 10);
+      if (Number.isFinite(n) && n > 0) days = Math.min(n, 365);
+    }
+    res.json(getPromptInsights(days));
   } catch (e) {
     next(e);
   }
