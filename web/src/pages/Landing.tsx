@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Play, Trophy, BarChart3, Cloud, Github, MessageCircle, ArrowRight, Terminal, Zap, Eye, Shield, Coins, BookOpen, LayoutGrid } from 'lucide-react'
+import { Play, Trophy, BarChart3, Cloud, Github, MessageCircle, ArrowRight, Terminal, Zap, Eye, Shield, Coins, BookOpen, LayoutGrid, Medal, TrendingUp } from 'lucide-react'
 import { useI18n, LanguageSwitcher } from '../lib/i18n'
 
 interface Props {
@@ -76,12 +76,12 @@ export default function Landing({ onEnterDemo }: Props) {
   const { t } = useI18n()
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-blue-50/30 to-white text-slate-800 overflow-hidden">
-      {/* Ambient orbs */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[15%] w-[700px] h-[700px] bg-blue-200/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-5%] right-[20%] w-[500px] h-[500px] bg-cyan-100/15 rounded-full blur-[100px]" />
-        <div className="absolute top-[40%] right-[5%] w-[300px] h-[300px] bg-emerald-100/10 rounded-full blur-[80px]" />
+    <div className="relative min-h-screen bg-gradient-to-b from-white via-blue-50/30 to-white text-slate-800 overflow-hidden">
+      {/* Ambient orbs — absolute so they don't overlap on scroll */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[5%] left-[15%] w-[700px] h-[700px] bg-blue-200/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[60%] right-[10%] w-[500px] h-[500px] bg-cyan-100/15 rounded-full blur-[100px]" />
+        <div className="absolute top-[35%] right-[5%] w-[300px] h-[300px] bg-emerald-100/10 rounded-full blur-[80px]" />
       </div>
 
       {/* Nav */}
@@ -246,6 +246,85 @@ export default function Landing({ onEnterDemo }: Props) {
               </div>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      {/* Leaderboard + Evolution Curve highlight */}
+      <section className="relative z-10 max-w-7xl mx-auto px-6 lg:px-16 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Leaderboard */}
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, ease: [0.25, 0.4, 0.25, 1] }}
+            className="bg-gradient-to-br from-amber-50 via-white to-rose-50 border border-amber-200/60 rounded-2xl p-8 flex flex-col"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <Medal className="w-5 h-5 text-amber-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">{t('landing.leaderboard.title')}</h3>
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed mb-6 flex-1">{t('landing.leaderboard.desc')}</p>
+            <div className="space-y-2 mb-6">
+              {[
+                { rank: '🥇', name: 'AgentPro', score: 92.4 },
+                { rank: '🥈', name: 'CodeWizard', score: 87.1 },
+                { rank: '🥉', name: 'TaskMaster', score: 83.8 },
+              ].map((e, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/80 border border-amber-100">
+                  <span className="text-lg">{e.rank}</span>
+                  <span className="text-sm font-medium text-slate-800 flex-1">{e.name}</span>
+                  <span className="text-sm font-bold text-amber-600 tabular-nums">{e.score}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={onEnterDemo}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm shadow-lg shadow-amber-300/30 hover:shadow-amber-300/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {t('landing.leaderboard.cta')}
+            </button>
+          </motion.div>
+
+          {/* Evolution Curve */}
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, ease: [0.25, 0.4, 0.25, 1] }}
+            className="bg-gradient-to-br from-blue-50 via-white to-cyan-50 border border-blue-200/60 rounded-2xl p-8 flex flex-col"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">{t('landing.curve.title')}</h3>
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed mb-6">{t('landing.curve.desc')}</p>
+            <div className="flex-1 flex items-end">
+              <svg viewBox="0 0 320 120" className="w-full h-32">
+                <defs>
+                  <linearGradient id="curveGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="rgba(59,130,246,0.3)" />
+                    <stop offset="100%" stopColor="rgba(59,130,246,0)" />
+                  </linearGradient>
+                </defs>
+                <path d="M0,110 Q40,100 80,85 T160,60 T240,35 T320,15" fill="none" stroke="rgba(59,130,246,0.5)" strokeWidth="2" strokeDasharray="4 3" />
+                <path d="M0,105 Q40,95 80,78 T160,52 T240,28 T320,10" fill="none" stroke="rgba(59,130,246,0.9)" strokeWidth="2.5" />
+                <path d="M0,105 Q40,95 80,78 T160,52 T240,28 T320,10 L320,120 L0,120 Z" fill="url(#curveGrad)" />
+                {[
+                  [20, 100], [60, 90], [100, 75], [140, 62], [180, 48],
+                  [220, 38], [260, 26], [300, 14],
+                ].map(([cx, cy], i) => (
+                  <circle key={i} cx={cx} cy={cy} r="3.5" fill="white" stroke="rgba(59,130,246,0.8)" strokeWidth="2" />
+                ))}
+                <text x="8" y="12" fontSize="9" fill="rgba(100,116,139,0.6)">Score</text>
+                <text x="280" y="118" fontSize="9" fill="rgba(100,116,139,0.6)">{t('landing.curve.axis')}</text>
+              </svg>
+            </div>
+          </motion.div>
         </div>
       </section>
 

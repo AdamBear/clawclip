@@ -435,7 +435,7 @@ function computeFromReplays(replays: SessionReplay[]): BenchmarkResult {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-/** 无历史文件或历史为空时，供进化曲线展示的 5 条演示数据（从旧到新） */
+/** 无历史文件或历史为空时，供进化曲线展示的 8 条演示数据（从旧到新），展示从 D→A 的完整成长轨迹 */
 function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[] {
   const t = reference.getTime();
   const rows: Array<{
@@ -457,9 +457,48 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
     dimDetails: [string, string, string, string, string, string];
   }> = [
     {
-      daysAgo: 30,
+      daysAgo: 60,
       index: 1,
-      overallScore: 52,
+      overallScore: 32,
+      rank: 'D',
+      w: 25, c: 20, tu: 35, se: 30, sa: 45, ce: 38,
+      summary: '初次接触，Agent 还不知道该干什么。',
+      topModel: 'gpt-3.5-turbo',
+      totalSessions: 3,
+      totalTokens: 12_000,
+      totalCost: 0.8,
+      dimDetails: ['写作刚起步', '几乎没有代码', '工具调用初探', '无检索行为', '基础安全', '成本偏高'],
+    },
+    {
+      daysAgo: 50,
+      index: 2,
+      overallScore: 40,
+      rank: 'D',
+      w: 35, c: 28, tu: 42, se: 38, sa: 52, ce: 45,
+      summary: '开始有模有样了，但各维度都还很弱。',
+      topModel: 'gpt-3.5-turbo',
+      totalSessions: 5,
+      totalTokens: 25_000,
+      totalCost: 1.5,
+      dimDetails: ['写作略有进步', '偶尔产出代码', '工具调用增多', '尝试引用来源', '安全意识萌芽', '成本控制一般'],
+    },
+    {
+      daysAgo: 42,
+      index: 3,
+      overallScore: 48,
+      rank: 'C',
+      w: 42, c: 35, tu: 50, se: 45, sa: 58, ce: 55,
+      summary: '突破 D 段进入 C 段，开始找到感觉。',
+      topModel: 'gpt-4o-mini',
+      totalSessions: 6,
+      totalTokens: 35_000,
+      totalCost: 2.0,
+      dimDetails: ['中文回复更流畅', '代码块开始出现', '工具链基本成型', '有检索痕迹', '安全表现稳定', '换模型省了钱'],
+    },
+    {
+      daysAgo: 30,
+      index: 4,
+      overallScore: 55,
       rank: 'C',
       w: 45,
       c: 38,
@@ -483,7 +522,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
     },
     {
       daysAgo: 22,
-      index: 2,
+      index: 5,
       overallScore: 61,
       rank: 'B',
       w: 58,
@@ -508,7 +547,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
     },
     {
       daysAgo: 15,
-      index: 3,
+      index: 6,
       overallScore: 70,
       rank: 'B',
       w: 72,
@@ -533,7 +572,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
     },
     {
       daysAgo: 7,
-      index: 4,
+      index: 7,
       overallScore: 78,
       rank: 'A',
       w: 85,
@@ -558,7 +597,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
     },
     {
       daysAgo: 1,
-      index: 5,
+      index: 8,
       overallScore: 83,
       rank: 'A',
       w: 88,

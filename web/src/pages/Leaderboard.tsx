@@ -345,6 +345,19 @@ export default function Leaderboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Scoring methodology & anti-cheat notice */}
+      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 text-sm text-slate-500 space-y-3">
+        <h4 className="text-white font-semibold text-base">{t('leaderboard.rules.title')}</h4>
+        <ul className="list-disc list-inside space-y-1.5 text-slate-400 leading-relaxed">
+          <li>{t('leaderboard.rules.r1')}</li>
+          <li>{t('leaderboard.rules.r2')}</li>
+          <li>{t('leaderboard.rules.r3')}</li>
+          <li>{t('leaderboard.rules.r4')}</li>
+          <li>{t('leaderboard.rules.r5')}</li>
+        </ul>
+        <p className="text-xs text-slate-600 pt-2 border-t border-white/[0.06]">{t('leaderboard.rules.disclaimer')}</p>
+      </div>
     </div>
   )
 }

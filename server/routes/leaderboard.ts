@@ -73,10 +73,19 @@ function validateLatestForSubmit(latest: {
     return '会话数须大于 0 / Sessions must be > 0';
   }
   if (!Array.isArray(dimensions) || dimensions.length !== 6) return '须包含 6 个维度 / Must have 6 dimensions';
+  let dimSum = 0;
   for (const d of dimensions) {
     if (typeof d.score !== 'number' || Number.isNaN(d.score) || d.score < 0 || d.score > 100) {
       return '维度分数须在 0-100 / Dimension score must be 0-100';
     }
+    dimSum += d.score;
+  }
+  const dimAvg = dimSum / dimensions.length;
+  if (Math.abs(dimAvg - overallScore) > 8) {
+    return '维度均分与总分差距过大 / Dimension average diverges from overall score';
+  }
+  if (totalSessions < 3) {
+    return '至少需要 3 条会话 / At least 3 sessions required';
   }
   return null;
 }
