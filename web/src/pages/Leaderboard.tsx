@@ -50,6 +50,7 @@ export default function Leaderboard() {
   const [previewErr, setPreviewErr] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitMsg, setSubmitMsg] = useState<string | null>(null)
+  const [submitOk, setSubmitOk] = useState(false)
 
   const fmtRelative = useCallback((iso: string) => {
     const diff = Date.now() - new Date(iso).getTime()
@@ -125,11 +126,13 @@ export default function Leaderboard() {
   const submit = async () => {
     const n = nickname.trim()
     if (n.length < 1 || n.length > 20) {
+      setSubmitOk(false)
       setSubmitMsg(t('leaderboard.modal.nickWarn'))
       return
     }
     setSubmitting(true)
     setSubmitMsg(null)
+    setSubmitOk(false)
     try {
       const res = await fetch('/api/leaderboard/submit', {
         method: 'POST',
@@ -138,10 +141,12 @@ export default function Leaderboard() {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
+        setSubmitOk(false)
         setSubmitMsg(typeof data.error === 'string' ? data.error : t('leaderboard.modal.fail'))
         return
       }
       const pos = typeof data.rank_position === 'number' ? data.rank_position : '?'
+      setSubmitOk(true)
       setSubmitMsg(t('leaderboard.modal.success').replace('{pos}', String(pos)))
       await loadList()
       setTimeout(() => {
@@ -149,6 +154,7 @@ export default function Leaderboard() {
         setSubmitMsg(null)
       }, 1200)
     } catch {
+      setSubmitOk(false)
       setSubmitMsg(t('leaderboard.error.network'))
     } finally {
       setSubmitting(false)
@@ -328,7 +334,7 @@ export default function Leaderboard() {
                 <p
                   className={cn(
                     'mt-3 text-sm',
-                    submitMsg.includes('✓') || submitMsg.includes(t('leaderboard.modal.success').split('！')[0]) ? 'text-emerald-400' : 'text-rose-400',
+                    submitOk ? 'text-emerald-400' : 'text-rose-400',
                   )}
                 >
                   {submitMsg}

@@ -126,7 +126,7 @@ function StepCard({ step, startTime }: { step: SessionStep; startTime: string })
             </div>
             {tokens > 0 && (
               <span className="text-xs text-slate-500">
-                {tokens.toLocaleString()} {t('replay.list.tokensUnit')} · ¥{step.cost.toFixed(4)}
+                {tokens.toLocaleString()} {t('replay.list.tokensUnit')} · ${step.cost.toFixed(4)}
               </span>
             )}
           </div>
@@ -462,7 +462,7 @@ export default function Replay() {
                 </div>
                 <div>
                   <span className="text-slate-500">{t('replay.metric.cost')}</span>
-                  <div className="text-accent font-medium">¥{replay.meta.totalCost.toFixed(4)}</div>
+                  <div className="text-accent font-medium">${replay.meta.totalCost.toFixed(4)}</div>
                 </div>
                 <div>
                   <span className="text-slate-500">{t('replay.metric.tokens')}</span>
@@ -559,7 +559,7 @@ export default function Replay() {
                   {t('replay.done.lead')
                     .replace('{steps}', String(replay.meta.stepCount))
                     .replace('{duration}', formatDuration(replay.meta.durationMs, locale))}
-                  <span className="text-emerald-400 font-medium">¥{replay.meta.totalCost.toFixed(4)}</span>
+                  <span className="text-emerald-400 font-medium">${replay.meta.totalCost.toFixed(4)}</span>
                 </p>
               </div>
             )}
@@ -678,7 +678,7 @@ export default function Replay() {
                       <span className="text-blue-400">
                         {session.totalTokens.toLocaleString()} {t('replay.list.tokensUnit')}
                       </span>
-                      <span className="text-accent font-medium">¥{session.totalCost.toFixed(4)}</span>
+                      <span className="text-accent font-medium">${session.totalCost.toFixed(4)}</span>
                     </div>
                   </div>
                 </button>

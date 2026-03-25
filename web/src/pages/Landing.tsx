@@ -278,7 +278,7 @@ export default function Landing({ onEnterDemo }: Props) {
                 <div className="flex-1 h-6 rounded-md bg-slate-700/50 max-w-xs" />
               </div>
               <div className="grid grid-cols-4 gap-3">
-                {['🟢 Running', '¥3.42', '15 Skills', '8 Sessions'].map((cell, i) => (
+                {['🟢 Running', '$3.42', '15 Skills', '8 Sessions'].map((cell, i) => (
                   <div key={i} className="rounded-lg bg-slate-700/40 border border-slate-600/30 p-3">
                     <div className="text-[10px] text-slate-500 mb-1">{['Status', 'Cost', 'Skills', 'Sessions'][i]}</div>
                     <div className="text-sm font-bold text-slate-200">{cell}</div>

@@ -378,7 +378,7 @@ export default function Benchmark() {
               </div>
               <div>
                 <span className="text-xs text-slate-500">{t('benchmark.metric.cost')}</span>
-                <div className="text-lg font-semibold text-accent">¥{result.totalCost.toFixed(2)}</div>
+                <div className="text-lg font-semibold text-accent">${result.totalCost.toFixed(2)}</div>
               </div>
               <div>
                 <span className="text-xs text-slate-500">{t('benchmark.metric.model')}</span>

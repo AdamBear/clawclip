@@ -126,7 +126,7 @@ export default function Dashboard({ onNavigate }: Props) {
     },
     {
       label: t('dashboard.stat.monthCost'),
-      value: `¥${(cost?.totalCost ?? 0).toFixed(2)}`,
+      value: `$${(cost?.totalCost ?? 0).toFixed(2)}`,
       sub: cost ? `${cost.totalTokens.toLocaleString()} ${t('replay.list.tokensUnit')}` : null,
       icon: DollarSign,
       variant: 'card-cyan',
@@ -381,7 +381,7 @@ export default function Dashboard({ onNavigate }: Props) {
                       <span>{formatRelativeTime(s.startTime, locale)}</span>
                     </div>
                   </div>
-                  <span className="text-xs text-cyan-400/80 font-mono shrink-0">¥{s.totalCost.toFixed(3)}</span>
+                  <span className="text-xs text-cyan-400/80 font-mono shrink-0">${s.totalCost.toFixed(3)}</span>
                 </button>
                 )
               })}

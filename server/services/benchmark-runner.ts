@@ -239,7 +239,7 @@ function scoreSearch(replays: SessionReplay[]): DimensionScore {
   let withCitationHint = 0;
 
   const urlHint = /https?:\/\/[^\s)\]]+/i;
-  const citeHint = /(\[.*?\]\(.*?\)|来源[:：]|引用[:：]|据.*?报道)/;
+  const citeHint = /(\[.*?\]\(.*?\)|来源[:：]|引用[:：]|据.*?报道|source\s*:|according to|cited?\s*(from|by)|references?\s*:)/i;
 
   for (const r of replays) {
     sessions += 1;

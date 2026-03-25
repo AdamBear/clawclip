@@ -1,11 +1,18 @@
 import { Router } from 'express';
+import type { Request } from 'express';
 import { costParser } from '../services/cost-parser.js';
 
 const router = Router();
 
+function parseDays(req: Request, fallback = 30): number {
+  const raw = parseInt(String(req.query.days));
+  if (!Number.isFinite(raw) || raw < 1 || raw > 365) return fallback;
+  return raw;
+}
+
 /** 费用汇总 */
 router.get('/summary', (req, res) => {
-  const days = parseInt(String(req.query.days)) || 30;
+  const days = parseDays(req);
   try {
     const stats = costParser.getUsageStats(days);
     const budget = costParser.checkBudgetAlert();
@@ -17,7 +24,7 @@ router.get('/summary', (req, res) => {
 
 /** 每日明细 */
 router.get('/daily', (req, res) => {
-  const days = parseInt(String(req.query.days)) || 30;
+  const days = parseDays(req);
   try {
     const daily = costParser.getDailyUsage(days);
     res.json(daily);
@@ -28,7 +35,7 @@ router.get('/daily', (req, res) => {
 
 /** 按模型分组 */
 router.get('/models', (req, res) => {
-  const days = parseInt(String(req.query.days)) || 30;
+  const days = parseDays(req);
   try {
     const models = costParser.getModelBreakdown(days);
     res.json(models);
@@ -64,7 +71,7 @@ router.post('/budget', (req, res) => {
 });
 
 router.get('/insights', (req, res) => {
-  const days = parseInt(String(req.query.days)) || 30;
+  const days = parseDays(req);
   try {
     const insights = costParser.getInsights(days);
     res.json(insights);
@@ -74,7 +81,7 @@ router.get('/insights', (req, res) => {
 });
 
 router.get('/savings', (req, res) => {
-  const days = parseInt(String(req.query.days)) || 30;
+  const days = parseDays(req);
   try {
     const report = costParser.getSavingSuggestions(days);
     res.json(report);

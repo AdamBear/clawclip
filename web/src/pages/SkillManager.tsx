@@ -151,7 +151,7 @@ export default function SkillManager() {
                 onClick={() => setConfirmTarget(null)}
                 className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
               >
-                {t('app.tour.skip') || '取消'}
+                {t('leaderboard.modal.cancel')}
               </button>
               <button
                 type="button"

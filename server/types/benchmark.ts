@@ -34,7 +34,7 @@ export interface BenchmarkHistory {
 }
 
 export const DIMENSION_LABELS: Record<BenchmarkDimension, string> = {
-  writing: '中文写作',
+  writing: '写作能力',
   coding: '代码能力',
   toolUse: '工具调用',
   search: '信息检索',
