@@ -13,6 +13,7 @@ import analyticsRouter from './routes/analytics.js';
 import knowledgeRouter from './routes/knowledge.js';
 import leaderboardRouter from './routes/leaderboard.js';
 import exportRouter from './routes/export.js';
+import alertsRouter from './routes/alerts.js';
 import { initPricingFetcher } from './services/pricing-fetcher.js';
 import { log } from './services/logger.js';
 
@@ -46,6 +47,7 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/knowledge', knowledgeRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/export', exportRouter);
+app.use('/api/alerts', alertsRouter);
 
 app.use('/share', shareRouter);
 
