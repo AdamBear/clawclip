@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { sessionParser } from '../services/session-parser.js';
+import { analyzeReplay } from '../services/replay-analyzer.js';
 
 const router = Router();
 
@@ -28,6 +29,21 @@ router.get('/sessions/:id', (req, res, next) => {
       return;
     }
     res.json(replay);
+  } catch (e) {
+    next(e);
+  }
+});
+
+/** GET /api/replay/sessions/:id/insights — 会话智能诊断 */
+router.get('/sessions/:id/insights', (req, res, next) => {
+  try {
+    const replay = sessionParser.getSessionReplay(req.params.id);
+    if (!replay) {
+      res.status(404).json({ error: '会话不存在 / Session not found' });
+      return;
+    }
+    const insights = analyzeReplay(replay);
+    res.json({ insights });
   } catch (e) {
     next(e);
   }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Play, Pause, Brain, Wrench, CheckCircle, Bot, MessageSquare, Settings, Clock, ChevronDown, ChevronUp, Zap, Share2, Download, FileText } from 'lucide-react'
+import { ArrowLeft, Play, Pause, Brain, Wrench, CheckCircle, Bot, MessageSquare, Settings, Clock, ChevronDown, ChevronUp, Zap, Share2, Download, FileText, Lightbulb, AlertTriangle, ThumbsUp } from 'lucide-react'
 import FadeIn from '../components/ui/FadeIn'
 import GlowCard from '../components/ui/GlowCard'
 import { cn } from '../lib/cn'
@@ -223,6 +223,8 @@ export default function Replay() {
   const [replay, setReplay] = useState<SessionReplay | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [insights, setInsights] = useState<Array<{ type: string; stepIndex?: number; titleZh: string; titleEn: string; descZh: string; descEn: string }>>([])
+  const [insightsOpen, setInsightsOpen] = useState(false)
 
   const [autoPlay, setAutoPlay] = useState(false)
   /** 自动播放模式下已展示的步数（1..n）；手动「查看全部」时不用 slice */
@@ -338,10 +340,15 @@ export default function Replay() {
     setLoading(true)
     setError(null)
     setReplay(null)
-    apiGet<SessionReplay>(`/api/replay/sessions/${encodeURIComponent(id)}`)
+    setInsights([])
+    setInsightsOpen(false)
+    const encoded = encodeURIComponent(id)
+    apiGet<SessionReplay>(`/api/replay/sessions/${encoded}`)
       .then(setReplay)
       .catch(() => setError(t('replay.error.detail')))
       .finally(() => setLoading(false))
+    apiGetSafe<{ insights: typeof insights }>(`/api/replay/sessions/${encoded}/insights`)
+      .then(d => { if (d?.insights) setInsights(d.insights) })
   }
 
   if (view === 'detail') {
@@ -468,6 +475,42 @@ export default function Replay() {
                 ))}
               </div>
             </div>
+
+            {insights.length > 0 && (
+              <div className="mb-6">
+                <button
+                  type="button"
+                  onClick={() => setInsightsOpen(v => !v)}
+                  className="flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors mb-3"
+                >
+                  <Lightbulb className="w-4 h-4" />
+                  {locale === 'zh' ? `智能诊断（${insights.length}）` : `Smart Insights (${insights.length})`}
+                  {insightsOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+                {insightsOpen && (
+                  <div className="space-y-2">
+                    {insights.map((ins, i) => {
+                      const Icon = ins.type === 'good' ? ThumbsUp : ins.type === 'warning' ? AlertTriangle : Lightbulb
+                      const color = ins.type === 'good' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                        : ins.type === 'warning' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                        : 'text-blue-400 bg-blue-500/10 border-blue-500/20'
+                      return (
+                        <div key={i} className={`rounded-xl border p-4 ${color}`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Icon className="w-4 h-4 shrink-0" />
+                            <span className="text-sm font-medium">{locale === 'zh' ? ins.titleZh : ins.titleEn}</span>
+                            {ins.stepIndex != null && (
+                              <span className="text-[10px] opacity-60 ml-auto">Step {ins.stepIndex + 1}</span>
+                            )}
+                          </div>
+                          <p className="text-xs opacity-80 leading-relaxed ml-6">{locale === 'zh' ? ins.descZh : ins.descEn}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {totalSteps === 0 && (
               <div className="text-center py-12 text-slate-500 text-sm">
