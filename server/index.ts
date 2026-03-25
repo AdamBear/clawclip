@@ -23,7 +23,7 @@ app.use(express.json());
 app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
   const se = err as SyntaxError & { status?: number; body?: unknown };
   if (err instanceof SyntaxError && se.status === 400 && 'body' in se) {
-    res.status(400).json({ error: '请求体不是合法 JSON', code: 'INVALID_JSON' });
+    res.status(400).json({ error: '请求体不是合法 JSON / Invalid JSON body', code: 'INVALID_JSON' });
     return;
   }
   next(err);
@@ -49,7 +49,7 @@ app.use('/share', shareRouter);
 
 // API 404：未匹配的 /api/* 请求返回 JSON 错误而非 index.html
 app.all('/api/*', (_req, res) => {
-  res.status(404).json({ error: '接口不存在' });
+  res.status(404).json({ error: '接口不存在 / Endpoint not found' });
 });
 
 // 生产环境：托管前端静态文件
@@ -74,7 +74,7 @@ app.get('*', (_req, res) => {
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   log.error('未捕获错误:', err.message);
   if (!res.headersSent) {
-    res.status(500).json({ error: '服务器内部错误' });
+    res.status(500).json({ error: '服务器内部错误 / Internal server error' });
   }
 });
 

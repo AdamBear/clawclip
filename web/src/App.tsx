@@ -51,7 +51,7 @@ function TabFallback() {
 
 function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
   const { t } = useI18n()
-  const [activeTab, setActiveTab] = useState<Tab>('replay')
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard')
   const [isDemo, setIsDemo] = useState(true)
 
   useEffect(() => {

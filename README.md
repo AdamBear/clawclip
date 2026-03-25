@@ -149,7 +149,7 @@ Express + TypeScript | React 18 + Vite + Tailwind CSS | Recharts | Framer Motion
 
 ## 交流
 
-QQ 群: `469906100`
+QQ 群: `892555092`
 
 ## 关于这只虾
 

@@ -65,17 +65,17 @@ function validateLatestForSubmit(latest: {
   totalSessions: number;
 }): string | null {
   const { overallScore, rank, dimensions, totalSessions } = latest;
-  if (typeof overallScore !== 'number' || Number.isNaN(overallScore)) return '分数无效';
-  if (overallScore < 0 || overallScore > 100) return '总分须在 0–100 之间';
-  if (!['S', 'A', 'B', 'C', 'D'].includes(rank)) return '段位无效';
-  if (!rankMatchesOverall(rank, overallScore)) return '段位与总分不一致';
+  if (typeof overallScore !== 'number' || Number.isNaN(overallScore)) return '分数无效 / Invalid score';
+  if (overallScore < 0 || overallScore > 100) return '总分须在 0–100 / Score must be 0-100';
+  if (!['S', 'A', 'B', 'C', 'D'].includes(rank)) return '段位无效 / Invalid rank';
+  if (!rankMatchesOverall(rank, overallScore)) return '段位与总分不一致 / Rank does not match score';
   if (typeof totalSessions !== 'number' || !Number.isFinite(totalSessions) || totalSessions <= 0) {
-    return '会话数须大于 0';
+    return '会话数须大于 0 / Sessions must be > 0';
   }
-  if (!Array.isArray(dimensions) || dimensions.length !== 6) return '须包含 6 个维度分数';
+  if (!Array.isArray(dimensions) || dimensions.length !== 6) return '须包含 6 个维度 / Must have 6 dimensions';
   for (const d of dimensions) {
     if (typeof d.score !== 'number' || Number.isNaN(d.score) || d.score < 0 || d.score > 100) {
-      return '维度分数须在 0–100 之间';
+      return '维度分数须在 0-100 / Dimension score must be 0-100';
     }
   }
   return null;
@@ -341,7 +341,7 @@ router.get('/', (req, res) => {
       isDemo: stored === null,
     });
   } catch (e) {
-    res.status(500).json({ error: '获取排行榜失败', detail: String(e) });
+    res.status(500).json({ error: '获取排行榜失败 / Failed to get leaderboard', detail: String(e) });
   }
 });
 
@@ -351,7 +351,7 @@ router.post('/submit', (req, res) => {
     const rl = checkRateLimit(ip);
     if (!rl.ok) {
       res.status(429).json({
-        error: '提交太频繁，每小时最多 3 次',
+        error: '提交太频繁 / Too many submissions (max 3 per hour)',
         retryAfterMs: rl.retryAfterMs,
       });
       return;
@@ -361,13 +361,13 @@ router.post('/submit', (req, res) => {
     const nickname =
       typeof raw === 'string' ? sanitizeNickname(raw) : null;
     if (nickname === null) {
-      res.status(400).json({ error: '昵称长度须为 1–20 个字符' });
+      res.status(400).json({ error: '昵称长度须为 1–20 字符 / Nickname must be 1-20 characters' });
       return;
     }
 
     const latest = benchmarkRunner.getLatest();
     if (!latest) {
-      res.status(400).json({ error: '暂无评测结果，请先运行评测' });
+      res.status(400).json({ error: '暂无评测结果 / No benchmark results yet' });
       return;
     }
     const invalidReason = validateLatestForSubmit(latest);
@@ -380,7 +380,7 @@ router.post('/submit', (req, res) => {
     const base = prevStored === null ? [] : [...prevStored];
     const nicksForIp = distinctNicknamesForIp(base, ip);
     if (!nicksForIp.has(nickname) && nicksForIp.size >= MAX_NICKNAMES_PER_IP) {
-      res.status(400).json({ error: '同一 IP 在榜上最多使用 3 个不同昵称' });
+      res.status(400).json({ error: '同一 IP 最多 3 个昵称 / Max 3 nicknames per IP' });
       return;
     }
 
@@ -400,7 +400,7 @@ router.post('/submit', (req, res) => {
     writeStored(merged);
     const saved = merged.find(e => e.nickname === nickname);
     if (!saved) {
-      res.status(500).json({ error: '保存排行榜失败' });
+      res.status(500).json({ error: '保存排行榜失败 / Failed to save leaderboard' });
       return;
     }
     const sorted = sortByScoreDesc(merged);
@@ -408,7 +408,7 @@ router.post('/submit', (req, res) => {
     const { _ip: _, ...safeEntry } = saved;
     res.json({ entry: safeEntry, rank_position });
   } catch (e) {
-    res.status(500).json({ error: '提交排行榜失败', detail: String(e) });
+    res.status(500).json({ error: '提交排行榜失败 / Failed to submit', detail: String(e) });
   }
 });
 

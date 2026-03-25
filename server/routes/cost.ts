@@ -18,7 +18,7 @@ router.get('/summary', (req, res) => {
     const budget = costParser.checkBudgetAlert();
     res.json({ ...stats, budget });
   } catch (e) {
-    res.status(500).json({ error: '获取费用数据失败', detail: String(e) });
+    res.status(500).json({ error: '获取费用数据失败 / Failed to get cost data', detail: String(e) });
   }
 });
 
@@ -29,7 +29,7 @@ router.get('/daily', (req, res) => {
     const daily = costParser.getDailyUsage(days);
     res.json(daily);
   } catch (e) {
-    res.status(500).json({ error: '获取每日数据失败', detail: String(e) });
+    res.status(500).json({ error: '获取每日数据失败 / Failed to get daily data', detail: String(e) });
   }
 });
 
@@ -40,7 +40,7 @@ router.get('/models', (req, res) => {
     const models = costParser.getModelBreakdown(days);
     res.json(models);
   } catch (e) {
-    res.status(500).json({ error: '获取模型数据失败', detail: String(e) });
+    res.status(500).json({ error: '获取模型数据失败 / Failed to get model data', detail: String(e) });
   }
 });
 
@@ -55,18 +55,18 @@ router.post('/budget', (req, res) => {
     const { monthly, alertThreshold } = req.body;
 
     if (monthly !== undefined && (typeof monthly !== 'number' || monthly <= 0 || monthly > 1_000_000)) {
-      res.status(400).json({ error: '月预算必须是 1-1000000 之间的正数' });
+      res.status(400).json({ error: '月预算必须是正数 / Monthly budget must be a positive number (1-1000000)' });
       return;
     }
     if (alertThreshold !== undefined && (typeof alertThreshold !== 'number' || alertThreshold < 1 || alertThreshold > 100)) {
-      res.status(400).json({ error: '告警阈值必须是 1-100 之间的数字' });
+      res.status(400).json({ error: '告警阈值须在 1-100 / Alert threshold must be 1-100' });
       return;
     }
 
     costParser.saveConfig({ monthly, alertThreshold });
     res.json({ success: true, config: costParser.getConfig() });
   } catch (e) {
-    res.status(500).json({ error: '更新预算失败', detail: String(e) });
+    res.status(500).json({ error: '更新预算失败 / Failed to update budget', detail: String(e) });
   }
 });
 
@@ -76,7 +76,7 @@ router.get('/insights', (req, res) => {
     const insights = costParser.getInsights(days);
     res.json(insights);
   } catch (e) {
-    res.status(500).json({ error: '获取洞察数据失败', detail: String(e) });
+    res.status(500).json({ error: '获取洞察数据失败 / Failed to get insights', detail: String(e) });
   }
 });
 
@@ -86,7 +86,7 @@ router.get('/savings', (req, res) => {
     const report = costParser.getSavingSuggestions(days);
     res.json(report);
   } catch (e) {
-    res.status(500).json({ error: '获取省钱建议失败', detail: String(e) });
+    res.status(500).json({ error: '获取省钱建议失败 / Failed to get savings', detail: String(e) });
   }
 });
 

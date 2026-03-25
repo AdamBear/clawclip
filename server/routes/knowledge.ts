@@ -265,7 +265,7 @@ router.get('/export/:id', (req, res, next) => {
     const format = String(req.query.format ?? 'json').toLowerCase();
     const replay = findReplayById(req.params.id);
     if (!replay) {
-      res.status(404).json({ error: '会话不存在' });
+      res.status(404).json({ error: '会话不存在 / Session not found' });
       return;
     }
     if (format === 'markdown' || format === 'md') {
@@ -301,7 +301,7 @@ router.post('/import', (req, res, next) => {
   try {
     const body = req.body as unknown;
     if (body == null || typeof body !== 'object') {
-      res.status(400).json({ error: '请求体应为 JSON 对象或数组' });
+      res.status(400).json({ error: '请求体应为 JSON 对象或数组 / Request body must be a JSON object or array' });
       return;
     }
     const items = Array.isArray(body) ? body : [body];
@@ -311,7 +311,7 @@ router.post('/import', (req, res, next) => {
       if (r) incoming.push(r);
     }
     if (incoming.length === 0) {
-      res.status(400).json({ error: '未解析到有效的 SessionReplay' });
+      res.status(400).json({ error: '未解析到有效的 SessionReplay / No valid SessionReplay found' });
       return;
     }
 

@@ -9,7 +9,7 @@ router.get('/', (_req, res) => {
     const templates = templateEngine.getTemplates();
     res.json(templates);
   } catch (e) {
-    res.status(500).json({ error: '获取模板列表失败', detail: String(e) });
+    res.status(500).json({ error: '获取模板列表失败 / Failed to get templates', detail: String(e) });
   }
 });
 
@@ -18,12 +18,12 @@ router.get('/:id', (req, res) => {
   try {
     const template = templateEngine.getTemplate(req.params.id);
     if (!template) {
-      res.status(404).json({ error: '模板不存在' });
+      res.status(404).json({ error: '模板不存在 / Template not found' });
       return;
     }
     res.json(template);
   } catch (e) {
-    res.status(500).json({ error: '获取模板详情失败', detail: String(e) });
+    res.status(500).json({ error: '获取模板详情失败 / Failed to get template details', detail: String(e) });
   }
 });
 
@@ -31,14 +31,14 @@ router.get('/:id', (req, res) => {
 router.post('/apply', (req, res) => {
   const { id } = req.body;
   if (!id || typeof id !== 'string') {
-    res.status(400).json({ error: '缺少 id 参数' });
+    res.status(400).json({ error: '缺少 id 参数 / Missing id parameter' });
     return;
   }
   try {
     const result = templateEngine.applyTemplate(id.trim());
     res.json(result);
   } catch (e) {
-    res.status(500).json({ error: '应用模板失败', detail: String(e) });
+    res.status(500).json({ error: '应用模板失败 / Failed to apply template', detail: String(e) });
   }
 });
 

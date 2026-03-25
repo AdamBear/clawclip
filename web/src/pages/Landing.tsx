@@ -89,7 +89,7 @@ export default function Landing({ onEnterDemo }: Props) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xl">🍤</span>
-            <span className="text-lg font-bold text-slate-900">虾片</span>
+            <span className="text-lg font-bold text-slate-900">{t('app.name')}</span>
             <span className="text-xs text-slate-500">ClawClip</span>
           </div>
         </div>
@@ -333,7 +333,7 @@ export default function Landing({ onEnterDemo }: Props) {
           {[
             { step: '01', cmd: 'git clone https://github.com/Ylsssq926/clawclip.git\ncd clawclip', labelKey: 'landing.install.s1' as const },
             { step: '02', cmd: 'npm install', labelKey: 'landing.install.s2' as const },
-            { step: '03', cmd: 'npm run build && npm start\n# 打开 http://localhost:8080', labelKey: 'landing.install.s3' as const },
+            { step: '03', cmd: 'npm start\n# → http://localhost:8080', labelKey: 'landing.install.s3' as const },
           ].map((s, i) => (
             <motion.div
               key={s.step}
@@ -357,7 +357,7 @@ export default function Landing({ onEnterDemo }: Props) {
       <footer className="relative z-10 border-t border-slate-200 bg-slate-50 py-12 px-6 lg:px-16">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-500">虾片</span>
+            <span className="text-sm font-medium text-slate-500">{t('app.name')}</span>
             <span className="text-xs text-slate-400">ClawClip</span>
           </div>
 
@@ -366,12 +366,12 @@ export default function Landing({ onEnterDemo }: Props) {
               <Github className="w-4 h-4" /> GitHub
             </a>
             <span className="flex items-center gap-1.5">
-              <MessageCircle className="w-4 h-4" /> QQ 群 892555092
+              <MessageCircle className="w-4 h-4" /> {t('landing.footer.qq')}
             </span>
           </div>
 
           <p className="text-xs text-slate-400">
-            掠蓝 出品 · 虾片 ClawClip 🍤
+            {t('landing.footer.brand')}
           </p>
         </div>
       </footer>

@@ -8,7 +8,7 @@ router.get('/meta', (_req, res) => {
   try {
     res.json({ dataSource: benchmarkRunner.getSessionDataSource() });
   } catch (e) {
-    res.status(500).json({ error: '获取评测元信息失败', detail: String(e) });
+    res.status(500).json({ error: '获取评测元信息失败 / Failed to get benchmark meta', detail: String(e) });
   }
 });
 
@@ -18,7 +18,7 @@ router.post('/run', (_req, res) => {
     const result = benchmarkRunner.runBenchmark();
     res.json(result);
   } catch (e) {
-    res.status(500).json({ error: '执行评测失败', detail: String(e) });
+    res.status(500).json({ error: '执行评测失败 / Benchmark run failed', detail: String(e) });
   }
 });
 
@@ -27,12 +27,12 @@ router.get('/latest', (_req, res) => {
   try {
     const latest = benchmarkRunner.getLatest();
     if (!latest) {
-      res.status(404).json({ error: '暂无评测记录，可先 POST /api/benchmark/run' });
+      res.status(404).json({ error: '暂无评测记录 / No benchmark results yet. Run POST /api/benchmark/run first.' });
       return;
     }
     res.json(latest);
   } catch (e) {
-    res.status(500).json({ error: '获取最新评测失败', detail: String(e) });
+    res.status(500).json({ error: '获取最新评测失败 / Failed to get latest benchmark', detail: String(e) });
   }
 });
 
@@ -42,7 +42,7 @@ router.get('/history', (_req, res) => {
     const history = benchmarkRunner.getHistory();
     res.json(history);
   } catch (e) {
-    res.status(500).json({ error: '获取评测历史失败', detail: String(e) });
+    res.status(500).json({ error: '获取评测历史失败 / Failed to get benchmark history', detail: String(e) });
   }
 });
 

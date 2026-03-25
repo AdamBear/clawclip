@@ -8,7 +8,7 @@ router.get('/', async (_req, res) => {
     const status = await openclawBridge.getStatus();
     res.json(status);
   } catch (e) {
-    res.status(500).json({ error: '获取状态失败', detail: String(e) });
+    res.status(500).json({ error: '获取状态失败 / Failed to get status', detail: String(e) });
   }
 });
 

@@ -24,7 +24,7 @@ router.get('/sessions/:id', (req, res, next) => {
   try {
     const replay = sessionParser.getSessionReplay(req.params.id);
     if (!replay) {
-      res.status(404).json({ error: '会话不存在' });
+      res.status(404).json({ error: '会话不存在 / Session not found' });
       return;
     }
     res.json(replay);
