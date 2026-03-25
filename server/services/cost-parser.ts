@@ -50,7 +50,7 @@ export class CostParser {
   private config: BudgetConfig;
   private usageCache: { at: number; data: TokenUsage[] } | null = null;
   private logDedupeKeys = new Set<string>();
-  private static readonly CACHE_MS = 3500;
+  private static readonly CACHE_MS = 30_000;
 
   private get modelPricing(): Record<string, number> {
     return getModelPricing();

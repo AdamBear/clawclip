@@ -482,9 +482,17 @@ function parseJsonlFile(
   return { meta, steps };
 }
 
-function loadRealReplays(): SessionReplay[] {
+interface FileCacheEntry {
+  mtimeMs: number;
+  replay: SessionReplay;
+}
+
+const fileCache = new Map<string, FileCacheEntry>();
+
+function loadRealReplaysIncremental(): SessionReplay[] {
   const out: SessionReplay[] = [];
   const roots = getLobsterDataRoots();
+  const seenPaths = new Set<string>();
 
   for (const root of roots) {
     const entries = listAgentSessionEntries(root);
@@ -498,14 +506,37 @@ function loadRealReplays(): SessionReplay[] {
       }
       for (const f of files) {
         if (!f.endsWith('.jsonl')) continue;
+        const filePath = path.join(e.sessionsDir, f);
+        seenPaths.add(filePath);
         const baseName = f.slice(0, -'.jsonl'.length);
-        const replay = parseJsonlFile(e.sourceId, e.agentName, path.join(e.sessionsDir, f), baseName);
+
+        let mtimeMs: number;
+        try {
+          mtimeMs = fs.statSync(filePath).mtimeMs;
+        } catch {
+          continue;
+        }
+
+        const cached = fileCache.get(filePath);
+        if (cached && cached.mtimeMs === mtimeMs) {
+          out.push(cached.replay);
+          continue;
+        }
+
+        const replay = parseJsonlFile(e.sourceId, e.agentName, filePath, baseName);
         if (replay) {
           enrichSessionMetaFromStore(replay.meta, storeRows, baseName);
+          fileCache.set(filePath, { mtimeMs, replay });
           out.push(replay);
+        } else {
+          fileCache.delete(filePath);
         }
       }
     }
+  }
+
+  for (const key of fileCache.keys()) {
+    if (!seenPaths.has(key)) fileCache.delete(key);
   }
 
   return out;
@@ -513,14 +544,14 @@ function loadRealReplays(): SessionReplay[] {
 
 export class SessionParser {
   private cache: { at: number; data: SessionReplay[] } | null = null;
-  private static readonly CACHE_MS = 3500;
+  private static readonly CACHE_MS = 30_000;
 
   private getCachedReplays(): SessionReplay[] {
     const now = Date.now();
     if (this.cache && now - this.cache.at < SessionParser.CACHE_MS) {
       return this.cache.data;
     }
-    const data = loadRealReplays();
+    const data = loadRealReplaysIncremental();
     this.cache = { at: now, data };
     return data;
   }
