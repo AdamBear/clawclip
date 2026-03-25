@@ -277,7 +277,7 @@ export default function Landing({ onEnterDemo }: Props) {
                 </div>
                 <div className="flex-1 h-6 rounded-md bg-slate-700/50 max-w-xs" />
               </div>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { label: t('dashboard.stat.cli'), value: '🟢 Online' },
                   { label: t('dashboard.stat.monthCost'), value: '$3.42' },
@@ -290,8 +290,8 @@ export default function Landing({ onEnterDemo }: Props) {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-12 gap-3">
-                <div className="col-span-8 rounded-lg bg-slate-700/30 border border-slate-600/30 p-3 h-28">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div className="sm:col-span-8 rounded-lg bg-slate-700/30 border border-slate-600/30 p-3 h-28">
                   <div className="text-[10px] text-slate-500 mb-2">{t('cost.chart.title')}</div>
                   <div className="flex items-end gap-1 h-16">
                     {[40, 65, 50, 80, 55, 90, 70, 85, 60, 95, 75, 88].map((h, i) => (
@@ -299,7 +299,7 @@ export default function Landing({ onEnterDemo }: Props) {
                     ))}
                   </div>
                 </div>
-                <div className="col-span-4 rounded-lg bg-slate-700/30 border border-slate-600/30 p-3 h-28">
+                <div className="sm:col-span-4 rounded-lg bg-slate-700/30 border border-slate-600/30 p-3 h-28">
                   <div className="text-[10px] text-slate-500 mb-2">{t('benchmark.curve.title')}</div>
                   <div className="flex items-center justify-center h-16">
                     <svg viewBox="0 0 100 100" className="w-16 h-16">
