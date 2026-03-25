@@ -405,7 +405,8 @@ router.post('/submit', (req, res) => {
     }
     const sorted = sortByScoreDesc(merged);
     const rank_position = sorted.findIndex(e => e.id === saved.id) + 1;
-    res.json({ entry: saved, rank_position });
+    const { _ip: _, ...safeEntry } = saved;
+    res.json({ entry: safeEntry, rank_position });
   } catch (e) {
     res.status(500).json({ error: '提交排行榜失败', detail: String(e) });
   }

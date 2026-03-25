@@ -36,3 +36,13 @@ export async function apiGetSafe<T = unknown>(url: string): Promise<T | null> {
     return null;
   }
 }
+
+export function parseApiErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    try {
+      const body = JSON.parse(err.body || '{}');
+      if (typeof body.error === 'string') return body.error;
+    } catch { /* body not JSON */ }
+  }
+  return fallback;
+}

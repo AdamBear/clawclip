@@ -220,7 +220,7 @@ function App() {
   const [showLanding, setShowLanding] = useState(true)
 
   if (showLanding) {
-    return <Landing onEnterDemo={() => setShowLanding(false)} />
+    return <ErrorBoundary><Landing onEnterDemo={() => setShowLanding(false)} /></ErrorBoundary>
   }
 
   return <AppShell onBackToLanding={() => setShowLanding(true)} />

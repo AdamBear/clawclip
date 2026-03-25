@@ -764,6 +764,10 @@ export class BenchmarkRunner {
     if (!demoOnly) {
       const hist = this.readHistoryFile();
       hist.results.push(result);
+      const MAX_HISTORY = 100;
+      if (hist.results.length > MAX_HISTORY) {
+        hist.results = hist.results.slice(-MAX_HISTORY);
+      }
       this.writeHistory(hist);
     }
 

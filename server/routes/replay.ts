@@ -10,7 +10,7 @@ router.get('/sessions', (req, res, next) => {
     let limit: number | undefined;
     if (raw !== undefined && raw !== '') {
       const n = parseInt(String(raw), 10);
-      if (Number.isFinite(n) && n > 0) limit = n;
+      if (Number.isFinite(n) && n > 0) limit = Math.min(n, 200);
     }
     const sessions = sessionParser.getSessions(limit);
     res.json(sessions);

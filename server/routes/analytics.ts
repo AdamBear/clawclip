@@ -10,13 +10,13 @@ router.get('/keywords', (req, res, next) => {
     const rawDays = req.query.days;
     if (rawDays !== undefined && rawDays !== '') {
       const n = parseInt(String(rawDays), 10);
-      if (Number.isFinite(n) && n > 0) days = n;
+      if (Number.isFinite(n) && n > 0) days = Math.min(n, 365);
     }
     let limit: number | undefined;
     const rawLimit = req.query.limit;
     if (rawLimit !== undefined && rawLimit !== '') {
       const n = parseInt(String(rawLimit), 10);
-      if (Number.isFinite(n) && n > 0) limit = n;
+      if (Number.isFinite(n) && n > 0) limit = Math.min(n, 500);
     }
     const data = analyticsEngine.getKeywords(days, limit);
     res.json(data);

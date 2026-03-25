@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Medal, Loader2, AlertCircle, X } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useI18n } from '../lib/i18n'
-import { apiGet, apiPost, ApiError } from '../lib/api'
+import { apiGet, apiPost, parseApiErrorMessage } from '../lib/api'
 
 interface LeaderboardEntry {
   id: string
@@ -82,12 +82,7 @@ export default function Leaderboard() {
       setEntries(Array.isArray(data.entries) ? data.entries : [])
       setIsDemo(Boolean(data.isDemo))
     } catch (err) {
-      if (err instanceof ApiError) {
-        const body = JSON.parse(err.body || '{}')
-        setError(typeof body.error === 'string' ? body.error : t('leaderboard.error'))
-      } else {
-        setError(t('leaderboard.error.network'))
-      }
+      setError(parseApiErrorMessage(err, t('leaderboard.error')))
       setEntries([])
     } finally {
       setLoading(false)
@@ -115,12 +110,7 @@ export default function Leaderboard() {
         })
       })
       .catch((err) => {
-        if (err instanceof ApiError) {
-          const body = JSON.parse(err.body || '{}')
-          setPreviewErr(typeof body.error === 'string' ? body.error : t('leaderboard.modal.noData'))
-        } else {
-          setPreviewErr(t('leaderboard.modal.previewError'))
-        }
+        setPreviewErr(parseApiErrorMessage(err, t('leaderboard.modal.noData')))
       })
       .finally(() => setPreviewLoading(false))
   }
@@ -147,12 +137,7 @@ export default function Leaderboard() {
       }, 1200)
     } catch (err) {
       setSubmitOk(false)
-      if (err instanceof ApiError) {
-        const body = JSON.parse(err.body || '{}')
-        setSubmitMsg(typeof body.error === 'string' ? body.error : t('leaderboard.modal.fail'))
-      } else {
-        setSubmitMsg(t('leaderboard.error.network'))
-      }
+      setSubmitMsg(parseApiErrorMessage(err, t('leaderboard.modal.fail')))
     } finally {
       setSubmitting(false)
     }

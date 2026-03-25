@@ -16,11 +16,13 @@ export default function SkillManager() {
   const [installing, setInstalling] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     apiGet<Skill[]>('/api/skills')
       .then(d => setSkills(Array.isArray(d) ? d : []))
       .catch(() => { setError(t('skills.error.network')) })
+      .finally(() => setLoading(false))
   }, [])
 
   const handleInstall = async () => {
@@ -97,7 +99,11 @@ export default function SkillManager() {
         <div className="px-6 py-4 border-b border-white/[0.06]">
           <h3 className="font-semibold">{t('skills.installed')} ({skills.length})</h3>
         </div>
-        {skills.length === 0 ? (
+        {loading ? (
+          <div className="space-y-3 p-6">
+            {[1,2,3].map(i => <div key={i} className="skeleton h-12 w-full rounded-lg" />)}
+          </div>
+        ) : skills.length === 0 ? (
           <div className="px-6 py-12 text-center text-slate-500">
             <p className="text-lg mb-2">{t('skills.empty.title')}</p>
             <p className="text-sm">{t('skills.empty.desc')}</p>
