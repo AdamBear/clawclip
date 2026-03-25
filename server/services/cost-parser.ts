@@ -56,6 +56,17 @@ export class CostParser {
     return getModelPricing();
   }
 
+  private priceForModel(model: string): number {
+    const table = this.modelPricing;
+    if (table[model] != null) return table[model];
+    const stripped = model.replace(/-\d{4}-\d{2}-\d{2}$/, '').replace(/:.*$/, '');
+    if (stripped !== model && table[stripped] != null) return table[stripped];
+    for (const key of Object.keys(table)) {
+      if (model.startsWith(key)) return table[key];
+    }
+    return 2.0;
+  }
+
   constructor() {
     this.ensureDirectories();
     this.config = this.loadConfig();
@@ -188,7 +199,7 @@ export class CostParser {
             usage.output_tokens ?? usage.completion_tokens ?? usage.outputTokens ?? usage.completionTokens ?? 0,
           );
           if (!Number.isFinite(inputTokens) || !Number.isFinite(outputTokens)) continue;
-          const price = this.modelPricing[model] || 2.0;
+          const price = this.priceForModel(model);
           const cost = (inputTokens + outputTokens) * price / 1_000_000;
 
           const rawTs = parsed.timestamp ?? parsed.created_at ?? parsed.createdAt;
@@ -450,7 +461,7 @@ export class CostParser {
       });
     }
 
-    const unknownModels = modelKeys.filter(m => this.modelPricing[m] == null);
+    const unknownModels = modelKeys.filter(m => this.priceForModel(m) >= 2.0 && this.modelPricing[m] == null);
     if (unknownModels.length > 0) {
       insights.push({
         type: 'warning',
@@ -469,7 +480,7 @@ export class CostParser {
     let totalPotentialSaving = 0;
 
     for (const [model, data] of Object.entries(models)) {
-      const pricePerMillion = this.modelPricing[model] ?? 2.0;
+      const pricePerMillion = this.priceForModel(model);
       const alt = suggestAlternative(pricePerMillion, this.modelPricing);
       if (!alt) continue;
 

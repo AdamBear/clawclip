@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Landing from './pages/Landing'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LayoutDashboard, Play, Trophy, DollarSign, Puzzle, Store, ArrowLeft, Database, Medal, Menu, X } from 'lucide-react'
@@ -41,10 +42,13 @@ const tabs = [
 const TOUR_KEYS = ['app.tour.s1', 'app.tour.s2', 'app.tour.s3', 'app.tour.s4'] as const
 
 function TabFallback() {
-  const { t } = useI18n()
   return (
-    <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-500">
-      {t('benchmark.loading')}
+    <div className="space-y-6 animate-fade-in">
+      <div className="skeleton h-8 w-48 rounded-lg" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1,2,3,4].map(i => <div key={i} className="skeleton h-24 rounded-xl" />)}
+      </div>
+      <div className="skeleton h-64 rounded-xl" />
     </div>
   )
 }
@@ -94,20 +98,40 @@ function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
 
   return (
     <div className="min-h-screen bg-[#0b1120] text-slate-200 bg-dots bg-ambient">
-      {showTour && (
-        <div
+      <AnimatePresence>
+        {showTour && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="clawclip-tour-title"
         >
-          <div className="w-full max-w-md rounded-2xl border border-white/[0.1] bg-[#0f172a] p-6 shadow-xl">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.4, 0.25, 1] }}
+            className="w-full max-w-md rounded-2xl border border-white/[0.1] bg-[#0f172a] p-6 shadow-xl"
+          >
             <h2 id="clawclip-tour-title" className="text-lg font-semibold text-white mb-3">
               {t('app.tour.title')}
             </h2>
-            <p className="text-sm text-slate-400 leading-relaxed mb-6 min-h-[4.5rem]">
-              {t(TOUR_KEYS[tourStep])}
-            </p>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={tourStep}
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.2 }}
+                className="text-sm text-slate-400 leading-relaxed mb-6 min-h-[4.5rem]"
+              >
+                {t(TOUR_KEYS[tourStep])}
+              </motion.p>
+            </AnimatePresence>
             <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
@@ -124,9 +148,10 @@ function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
                 {tourStep >= TOUR_KEYS.length - 1 ? t('app.tour.done') : t('app.tour.next')}
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       <div className="bg-gradient-to-r from-blue-500/10 via-cyan-500/5 to-transparent border-b border-blue-500/10 px-6 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -217,14 +242,24 @@ function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
         <main className="flex-1 p-4 sm:p-8 min-h-[calc(100vh-49px-33px)] overflow-auto w-0">
           <ErrorBoundary>
             <Suspense fallback={<TabFallback />}>
-              {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
-              {activeTab === 'replay' && <Replay />}
-              {activeTab === 'benchmark' && <Benchmark />}
-              {activeTab === 'leaderboard' && <Leaderboard />}
-              {activeTab === 'cost' && <CostMonitor />}
-              {activeTab === 'skills' && <SkillManager />}
-              {activeTab === 'templates' && <TemplateMarket />}
-              {activeTab === 'knowledge' && <Knowledge />}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.2, ease: [0.25, 0.4, 0.25, 1] }}
+                >
+                  {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
+                  {activeTab === 'replay' && <Replay />}
+                  {activeTab === 'benchmark' && <Benchmark />}
+                  {activeTab === 'leaderboard' && <Leaderboard />}
+                  {activeTab === 'cost' && <CostMonitor />}
+                  {activeTab === 'skills' && <SkillManager />}
+                  {activeTab === 'templates' && <TemplateMarket />}
+                  {activeTab === 'knowledge' && <Knowledge />}
+                </motion.div>
+              </AnimatePresence>
             </Suspense>
           </ErrorBoundary>
         </main>

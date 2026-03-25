@@ -9,11 +9,18 @@ import {
   readJsonlFileSafe,
 } from './agent-data-root.js';
 import { enrichSessionMetaFromStore, loadOpenclawSessionStore } from './session-store.js';
+import { log } from './logger.js';
 
 const UNKNOWN_MODEL_FALLBACK_PRICE = 2.0;
 
 function priceFor(model?: string): number {
-  if (model && DEFAULT_MODEL_PRICING[model] != null) return DEFAULT_MODEL_PRICING[model];
+  if (!model) return UNKNOWN_MODEL_FALLBACK_PRICE;
+  if (DEFAULT_MODEL_PRICING[model] != null) return DEFAULT_MODEL_PRICING[model];
+  const stripped = model.replace(/-\d{4}-\d{2}-\d{2}$/, '').replace(/:.*$/, '');
+  if (stripped !== model && DEFAULT_MODEL_PRICING[stripped] != null) return DEFAULT_MODEL_PRICING[stripped];
+  for (const key of Object.keys(DEFAULT_MODEL_PRICING)) {
+    if (model.startsWith(key)) return DEFAULT_MODEL_PRICING[key];
+  }
   return UNKNOWN_MODEL_FALLBACK_PRICE;
 }
 
@@ -175,7 +182,7 @@ function pickToolCalls(body: JsonlLine, outer: JsonlLine): unknown[] | undefined
 /**
  * 从一行 JSONL 揪出一步；认不出来的行交给 null
  */
-function lineToStep(obj: JsonlLine, index: number): SessionStep | null {
+function lineToStep(obj: JsonlLine, index: number): SessionStep | SessionStep[] | null {
   const outerType = typeof obj.type === 'string' ? obj.type : undefined;
 
   if (outerType === 'session') return null;
@@ -285,21 +292,25 @@ function lineToStep(obj: JsonlLine, index: number): SessionStep | null {
 
     const toolCalls = pickToolCalls(body, obj);
     if (toolCalls && toolCalls.length > 0) {
-      const tc = toolCalls[0] as Record<string, unknown>;
-      const name = toolCallName(tc);
-      const toolInput = toolCallInput(tc);
-      return {
-        index,
-        timestamp,
-        type: 'tool_call',
-        content: text || '',
-        model,
-        toolName: name,
-        toolInput,
-        ...base(),
-        cost: 0,
-        durationMs: 0,
-      };
+      const steps: SessionStep[] = [];
+      for (let ti = 0; ti < toolCalls.length; ti++) {
+        const tc = toolCalls[ti] as Record<string, unknown>;
+        const name = toolCallName(tc);
+        const toolInput = toolCallInput(tc);
+        steps.push({
+          index: index + ti,
+          timestamp,
+          type: 'tool_call',
+          content: ti === 0 ? (text || '') : '',
+          model,
+          toolName: name,
+          toolInput,
+          ...base(),
+          cost: 0,
+          durationMs: 0,
+        });
+      }
+      return steps;
     }
     if (text.length > 0 || reasoningExtra.length > 0) {
       return {
@@ -450,12 +461,17 @@ function parseJsonlFile(
     let obj: JsonlLine;
     try {
       obj = JSON.parse(t) as JsonlLine;
-    } catch {
+    } catch (e) {
+      log.debug(`[session-parser] skipped malformed JSONL line in ${baseName}:`, (e as Error).message);
       continue;
     }
-    const step = lineToStep(obj, draft.length);
-    if (!step) continue;
-    draft.push(step);
+    const stepOrSteps = lineToStep(obj, draft.length);
+    if (!stepOrSteps) continue;
+    if (Array.isArray(stepOrSteps)) {
+      for (const s of stepOrSteps) draft.push(s);
+    } else {
+      draft.push(stepOrSteps);
+    }
   }
 
   if (draft.length === 0) return null;

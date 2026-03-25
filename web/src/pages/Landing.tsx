@@ -190,10 +190,15 @@ export default function Landing({ onEnterDemo }: Props) {
                 { step: 3, icon: Trophy, titleKey: 'landing.journey.s3t' as const, descKey: 'landing.journey.s3d' as const },
                 { step: 4, icon: BarChart3, titleKey: 'landing.journey.s4t' as const, descKey: 'landing.journey.s4d' as const },
               ] as const
-            ).map(({ step, icon: Ico, titleKey, descKey }) => (
-              <div
+            ).map(({ step, icon: Ico, titleKey, descKey }, i) => (
+              <motion.div
                 key={titleKey}
-                className="rounded-2xl border border-blue-100 bg-blue-50 p-5 hover:border-blue-200 transition-colors"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -3, scale: 1.02 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.08, ease: [0.25, 0.4, 0.25, 1] }}
+                className="rounded-2xl border border-blue-100 bg-blue-50 p-5 hover:border-blue-200 cursor-default"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-xs font-mono text-blue-600 tabular-nums">0{step}</span>
@@ -201,7 +206,7 @@ export default function Landing({ onEnterDemo }: Props) {
                 </div>
                 <h3 className="text-sm font-semibold text-slate-900 mb-2">{t(titleKey)}</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">{t(descKey)}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>
@@ -225,9 +230,10 @@ export default function Landing({ onEnterDemo }: Props) {
               key={f.titleKey}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -4, boxShadow: '0 12px 32px -8px rgba(59,130,246,0.15)' }}
               viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="bg-white border border-blue-100 rounded-2xl shadow-sm p-6 hover:border-blue-200 hover:shadow-md transition-all"
+              transition={{ duration: 0.45, delay: i * 0.08, ease: [0.25, 0.4, 0.25, 1] }}
+              className="bg-white border border-blue-100 rounded-2xl shadow-sm p-6 hover:border-blue-300 cursor-default"
             >
               <div className="flex items-start gap-4">
                 <div className={`w-11 h-11 rounded-xl ${f.iconBg} flex items-center justify-center shrink-0`}>

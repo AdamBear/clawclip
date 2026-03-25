@@ -7,6 +7,7 @@ import { formatDuration, formatRelativeTime, sessionMetaSubtitle } from '../lib/
 import { cn } from '../lib/cn'
 import type { SessionMeta } from '../types/session'
 import { apiGetSafe } from '../lib/api'
+import AnimatedCounter from '../components/ui/AnimatedCounter'
 
 interface LobsterDataRootStatus {
   id: string
@@ -121,6 +122,9 @@ export default function Dashboard({ onNavigate }: Props) {
     {
       label: t('dashboard.stat.monthCost'),
       value: `$${(cost?.totalCost ?? 0).toFixed(2)}`,
+      numValue: cost?.totalCost ?? 0,
+      numPrefix: '$',
+      numDecimals: 2,
       sub: cost ? `${cost.totalTokens.toLocaleString()} ${t('replay.list.tokensUnit')}` : null,
       icon: DollarSign,
       variant: 'card-cyan',
@@ -130,6 +134,7 @@ export default function Dashboard({ onNavigate }: Props) {
     {
       label: t('dashboard.stat.skillsLabel'),
       value: String(status?.skillCount ?? 0),
+      numValue: status?.skillCount ?? 0,
       sub: t('dashboard.stat.skillsSub'),
       icon: Puzzle,
       variant: 'card-blue',
@@ -139,6 +144,7 @@ export default function Dashboard({ onNavigate }: Props) {
     {
       label: t('dashboard.stat.sessionsLabel'),
       value: String(status?.totalSessionFiles ?? 0),
+      numValue: status?.totalSessionFiles ?? 0,
       sub: status?.hasRealSessionData ? t('compat.data.real') : t('compat.data.demo'),
       icon: Activity,
       variant: 'card-purple',
@@ -238,7 +244,11 @@ export default function Dashboard({ onNavigate }: Props) {
               <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">{c.label}</span>
               <c.icon className={`w-4 h-4 ${c.iconColor}`} />
             </div>
-            <div className={`text-2xl font-bold ${c.color} tracking-tight`}>{c.value}</div>
+            <div className={`text-2xl font-bold ${c.color} tracking-tight`}>
+              {!loading && c.numValue != null
+                ? <AnimatedCounter value={c.numValue} prefix={c.numPrefix} decimals={c.numDecimals} duration={800} />
+                : c.value}
+            </div>
             {c.sub && <p className="text-xs text-slate-600 mt-1">{c.sub}</p>}
           </div>
         ))}
