@@ -143,9 +143,9 @@ export default function Dashboard({ onNavigate }: Props) {
       iconColor: 'text-blue-400',
     },
     {
-      label: t('dashboard.stat.channelsLabel'),
-      value: String(status?.channels?.length ?? 0),
-      sub: status?.channels?.length ? status.channels.join(', ') : t('dashboard.stat.none'),
+      label: t('dashboard.stat.sessionsLabel'),
+      value: String(status?.totalSessionFiles ?? 0),
+      sub: status?.hasRealSessionData ? t('compat.data.real') : t('compat.data.demo'),
       icon: Activity,
       variant: 'card-purple',
       color: 'text-violet-400',
@@ -292,6 +292,26 @@ export default function Dashboard({ onNavigate }: Props) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Secondary quick links */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-fade-in" style={{ animationDelay: '300ms' }}>
+        {([
+          { tab: 'knowledge' as const, icon: '📚', title: t('nav.knowledge') },
+          { tab: 'leaderboard' as const, icon: '🥇', title: t('nav.leaderboard') },
+          { tab: 'templates' as const, icon: '📦', title: t('nav.templates') },
+          { tab: 'skills' as const, icon: '🧩', title: t('nav.skills') },
+        ] as const).map((item) => (
+          <button
+            key={item.tab}
+            onClick={() => onNavigate(item.tab)}
+            className="card p-4 text-left group hover:bg-white/[0.04] transition-colors flex items-center gap-3"
+          >
+            <span className="text-lg">{item.icon}</span>
+            <span className="text-sm text-slate-400 group-hover:text-white transition-colors">{item.title}</span>
+            <ArrowRight className="w-3 h-3 text-slate-600 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        ))}
       </div>
 
       {/* Two column: Word Cloud + Recent Activity */}
