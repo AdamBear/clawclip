@@ -1,5 +1,6 @@
 # 🍤 ClawClip
 
+[![Latest Release](https://img.shields.io/github/v/release/Ylsssq926/clawclip?label=release)](https://github.com/Ylsssq926/clawclip/releases)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A518-brightgreen.svg)](https://nodejs.org)
 [![7 Languages](https://img.shields.io/badge/i18n-7%20languages-blueviolet.svg)](#features)
