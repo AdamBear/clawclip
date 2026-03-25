@@ -73,4 +73,14 @@ router.get('/insights', (req, res) => {
   }
 });
 
+router.get('/savings', (req, res) => {
+  const days = parseInt(String(req.query.days)) || 30;
+  try {
+    const report = costParser.getSavingSuggestions(days);
+    res.json(report);
+  } catch (e) {
+    res.status(500).json({ error: '获取省钱建议失败', detail: String(e) });
+  }
+});
+
 export default router;

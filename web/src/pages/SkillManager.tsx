@@ -13,6 +13,8 @@ export default function SkillManager() {
   const [skills, setSkills] = useState<Skill[]>([])
   const [search, setSearch] = useState('')
   const [installing, setInstalling] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/skills')
@@ -23,6 +25,7 @@ export default function SkillManager() {
 
   const handleInstall = async () => {
     if (!search.trim()) return
+    setError(null)
     setInstalling(search)
     try {
       const res = await fetch('/api/skills/install', {
@@ -32,7 +35,7 @@ export default function SkillManager() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        alert(err.error || t('skills.error.install'))
+        setError(err.error || t('skills.error.install'))
         return
       }
       const result = await res.json()
@@ -41,17 +44,16 @@ export default function SkillManager() {
         const listRes = await fetch('/api/skills')
         if (listRes.ok) setSkills(await listRes.json())
       } else {
-        alert(result.message || t('skills.error.install'))
+        setError(result.message || t('skills.error.install'))
       }
     } catch {
-      alert(t('skills.error.network'))
+      setError(t('skills.error.network'))
     } finally {
       setInstalling(null)
     }
   }
 
-  const handleUninstall = async (name: string) => {
-    if (!confirm(t('skills.confirm.uninstall').replace('{name}', name))) return
+  const doUninstall = async (name: string) => {
     try {
       const res = await fetch('/api/skills/uninstall', {
         method: 'POST',
@@ -60,7 +62,7 @@ export default function SkillManager() {
       })
       const result = await res.json()
       if (result.success) {
-        setSkills(skills.filter(s => s.name !== name))
+        setSkills(prev => prev.filter(s => s.name !== name))
       }
     } catch {}
   }
@@ -91,6 +93,19 @@ export default function SkillManager() {
         </button>
       </div>
 
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="text-red-400/60 hover:text-red-400 ml-3 text-xs"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div className="card">
         <div className="px-6 py-4 border-b border-white/[0.06]">
           <h3 className="font-semibold">{t('skills.installed')} ({skills.length})</h3>
@@ -109,7 +124,8 @@ export default function SkillManager() {
                   <div className="text-sm text-slate-400 mt-0.5">{skill.description}</div>
                 </div>
                 <button
-                  onClick={() => handleUninstall(skill.name)}
+                  type="button"
+                  onClick={() => setConfirmTarget(skill.name)}
                   className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                   title={t('skills.uninstall')}
                 >
@@ -120,6 +136,35 @@ export default function SkillManager() {
           </div>
         )}
       </div>
+
+      {confirmTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-[#0f172a] border border-white/[0.1] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <p className="text-sm text-slate-300 mb-4">
+              {t('skills.confirm.uninstall').replace('{name}', confirmTarget)}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setConfirmTarget(null)}
+                className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+              >
+                {t('app.tour.skip') || '取消'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void doUninstall(confirmTarget)
+                  setConfirmTarget(null)
+                }}
+                className="px-4 py-2 text-sm bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 transition-colors"
+              >
+                {t('skills.uninstall')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

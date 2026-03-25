@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useI18n } from '../lib/i18n'
 
 export interface KeywordItem {
   word: string
@@ -29,6 +30,7 @@ function rectsOverlap(a: BBox, b: BBox): boolean {
 }
 
 export default function WordCloud({ keywords, onWordClick, width = 700, height = 300 }: WordCloudProps) {
+  const { t } = useI18n()
   const [hovered, setHovered] = useState<string | null>(null)
 
   const placed = useMemo(() => {
@@ -72,7 +74,7 @@ export default function WordCloud({ keywords, onWordClick, width = 700, height =
   }, [keywords, width, height])
 
   if (!keywords.length) {
-    return <div className="flex items-center justify-center min-h-[200px] text-sm text-slate-600">暂无关键词数据</div>
+    return <div className="flex items-center justify-center min-h-[200px] text-sm text-slate-600">{t('app.wordcloud.empty')}</div>
   }
 
   return (

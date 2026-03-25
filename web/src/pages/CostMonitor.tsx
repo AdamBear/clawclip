@@ -24,6 +24,26 @@ interface CostSummary {
   topTasks: { taskId: string; taskName: string; cost: number; tokens: number }[]
 }
 
+interface CostInsight {
+  type: 'info' | 'warning' | 'tip'
+  icon: string
+  messageZh: string
+  messageEn: string
+}
+
+interface SavingSuggestion {
+  currentModel: string
+  alternativeModel: string
+  currentCost: number
+  alternativeCost: number
+  saving: number
+  tokens: number
+}
+interface SavingsReport {
+  totalPotentialSaving: number
+  suggestions: SavingSuggestion[]
+}
+
 const chartTooltipStyle = {
   background: 'rgba(17,24,39,0.9)',
   border: '1px solid rgba(255,255,255,0.06)',
@@ -52,9 +72,12 @@ function CostSkeleton() {
 }
 
 export default function CostMonitor() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const isZh = locale.startsWith('zh')
   const [daily, setDaily] = useState<DailyData[]>([])
   const [summary, setSummary] = useState<CostSummary | null>(null)
+  const [insights, setInsights] = useState<CostInsight[]>([])
+  const [savings, setSavings] = useState<SavingsReport | null>(null)
   const [days, setDays] = useState(7)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -77,11 +100,15 @@ export default function CostMonitor() {
         .then(r => (r.ok ? r.json() : null))
         .then((s: { hasRealSessionData?: boolean } | null) => !(s?.hasRealSessionData ?? false))
         .catch(() => true),
+      safeFetch(`/api/cost/insights?days=${days}`).catch(() => [] as CostInsight[]),
+      safeFetch(`/api/cost/savings?days=${days}`).catch(() => null as SavingsReport | null),
     ])
-      .then(([d, s, isDemo]) => {
+      .then(([d, s, isDemo, ins, sav]) => {
         setDaily(d)
         setSummary(s)
         setDemoCostHint(Boolean(isDemo))
+        setInsights(Array.isArray(ins) ? ins : [])
+        setSavings(sav)
       })
       .catch(() => {
         setError(t('cost.error'))
@@ -183,6 +210,61 @@ export default function CostMonitor() {
               </div>
             </GlowCard>
           </div>
+
+          {!loading && insights.length > 0 && (
+            <div className="glass-raised rounded-xl p-6 border border-surface-border mb-6">
+              <h3 className="text-lg font-semibold mb-4">{t('cost.insights.title')}</h3>
+              <div className="space-y-3">
+                {insights.map((ins, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'flex items-start gap-3 px-4 py-3 rounded-xl text-sm',
+                      ins.type === 'warning' ? 'bg-amber-500/10 border border-amber-500/20 text-amber-200' :
+                      ins.type === 'tip' ? 'bg-blue-500/10 border border-blue-500/20 text-blue-200' :
+                      'bg-white/[0.03] border border-white/[0.06] text-slate-300',
+                    )}
+                  >
+                    <span className="text-lg shrink-0 mt-0.5">{ins.icon}</span>
+                    <span>{isZh ? ins.messageZh : ins.messageEn}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!loading && savings && savings.suggestions.length > 0 && (
+            <div className="glass-raised rounded-xl p-6 border border-surface-border mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">{t('cost.savings.title')}</h3>
+                <div className="text-right">
+                  <span className="text-xs text-slate-400">{t('cost.savings.total')}</span>
+                  <span className="text-lg font-bold text-green-400 ml-2">¥{savings.totalPotentialSaving.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {savings.suggestions.map((sug, i) => (
+                  <div key={i} className="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <div className="flex items-center gap-3 text-sm min-w-0">
+                      <span className="font-medium text-slate-200 truncate">{sug.currentModel}</span>
+                      <span className="text-slate-500">→</span>
+                      <span className="text-green-400 truncate">{sug.alternativeModel}</span>
+                    </div>
+                    <div className="text-right shrink-0 ml-4">
+                      <span className="text-green-400 font-medium text-sm">-¥{sug.saving.toFixed(2)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-slate-600 mt-3">{t('cost.savings.disclaimer')}</p>
+            </div>
+          )}
+
+          {!loading && savings && savings.suggestions.length === 0 && summary && summary.totalCost > 0 && (
+            <div className="glass-raised rounded-xl p-6 border border-surface-border mb-6 text-center">
+              <p className="text-sm text-slate-400">✅ {t('cost.savings.empty')}</p>
+            </div>
+          )}
 
           <div className="glass-raised rounded-xl p-6 border border-surface-border mb-6">
             <h3 className="text-lg font-semibold mb-4">{t('cost.trend.title')}</h3>

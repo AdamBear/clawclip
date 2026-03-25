@@ -548,6 +548,10 @@ export class SessionParser {
   hasRealSessions(): boolean {
     return this.getCachedReplays().length > 0;
   }
+
+  getRealReplays(): SessionReplay[] {
+    return this.getCachedReplays();
+  }
 }
 
 export const sessionParser = new SessionParser();

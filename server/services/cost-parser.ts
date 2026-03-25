@@ -8,11 +8,20 @@ import {
   BudgetConfig,
   TaskCost,
   CostInsight,
+  SavingSuggestion,
+  SavingsReport,
   DEFAULT_MODEL_PRICING,
   DEFAULT_BUDGET_CONFIG,
 } from '../types/index.js';
 import { getClawclipStateDir, getLobsterDataRoots } from './agent-data-root.js';
 import { sessionParser } from './session-parser.js';
+
+function suggestAlternative(pricePerMillion: number): { name: string; price: number } | null {
+  if (pricePerMillion >= 50) return { name: 'gpt-4o / claude-sonnet-4', price: 8.0 };
+  if (pricePerMillion >= 5) return { name: 'gpt-4o-mini / claude-3.5-haiku', price: 1.0 };
+  if (pricePerMillion >= 1) return { name: 'deepseek-chat', price: 0.1 };
+  return null;
+}
 
 export class CostParser {
   private static readonly CHEAP_MODELS = [
@@ -413,6 +422,39 @@ export class CostParser {
     }
 
     return insights;
+  }
+
+  getSavingSuggestions(days: number = 30): SavingsReport {
+    const models = this.getModelBreakdown(days);
+    const suggestions: SavingSuggestion[] = [];
+    let totalPotentialSaving = 0;
+
+    for (const [model, data] of Object.entries(models)) {
+      const pricePerMillion = this.modelPricing[model] ?? 5.0;
+      const alt = suggestAlternative(pricePerMillion);
+      if (!alt) continue;
+
+      const altCost = data.tokens * alt.price / 1_000_000;
+      const saving = data.cost - altCost;
+      if (saving <= 0.01) continue;
+
+      totalPotentialSaving += saving;
+      suggestions.push({
+        currentModel: model,
+        alternativeModel: alt.name,
+        currentCost: data.cost,
+        alternativeCost: altCost,
+        saving,
+        tokens: data.tokens,
+      });
+    }
+
+    suggestions.sort((a, b) => b.saving - a.saving);
+
+    return {
+      totalPotentialSaving,
+      suggestions: suggestions.slice(0, 5),
+    };
   }
 }
 

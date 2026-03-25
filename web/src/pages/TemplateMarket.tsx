@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Check, ArrowRight } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 
@@ -11,15 +11,12 @@ interface Template {
   skills: string[]
 }
 
-const CAT_KEYS = [
-  'templates.cat.all',
-  'templates.cat.efficiency',
-  'templates.cat.creative',
-  'templates.cat.dev',
-  'templates.cat.support',
-] as const
-
-const CAT_RAW = ['全部', '效率', '创作', '开发', '客服'] as const
+const CAT_I18N: Record<string, string> = {
+  '效率': 'templates.cat.efficiency',
+  '创作': 'templates.cat.creative',
+  '开发': 'templates.cat.dev',
+  '客服': 'templates.cat.support',
+}
 
 export default function TemplateMarket() {
   const { t } = useI18n()
@@ -28,6 +25,12 @@ export default function TemplateMarket() {
   const [applied, setApplied] = useState<Set<string>>(new Set())
   const [applying, setApplying] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const categories = useMemo(
+    () => [...new Set(templates.map(t => t.category))],
+    [templates],
+  )
 
   useEffect(() => {
     fetch('/api/templates')
@@ -37,9 +40,13 @@ export default function TemplateMarket() {
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = catIdx === 0 ? templates : templates.filter(tmpl => tmpl.category === CAT_RAW[catIdx])
+  const filtered =
+    catIdx === 0
+      ? templates
+      : templates.filter(tmpl => tmpl.category === categories[catIdx - 1])
 
   const handleApply = async (id: string) => {
+    setError(null)
     setApplying(id)
     try {
       const res = await fetch('/api/templates/apply', {
@@ -47,15 +54,18 @@ export default function TemplateMarket() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       })
-      if (!res.ok) { alert(t('templates.error.apply')); return }
+      if (!res.ok) {
+        setError(t('templates.error.apply'))
+        return
+      }
       const result = await res.json()
       if (result.success) {
         setApplied(prev => new Set(prev).add(id))
       } else {
-        alert(result.message || t('templates.error.apply'))
+        setError(result.message || t('templates.error.apply'))
       }
     } catch {
-      alert(t('templates.error.network'))
+      setError(t('templates.error.network'))
     } finally {
       setApplying(null)
     }
@@ -67,20 +77,45 @@ export default function TemplateMarket() {
       <p className="text-slate-400 text-sm mb-6">{t('templates.subtitle')}</p>
 
       <div className="flex gap-2 mb-6 flex-wrap">
-        {CAT_KEYS.map((key, i) => (
+        <button
+          type="button"
+          onClick={() => setCatIdx(0)}
+          className={`px-4 py-2 rounded-xl text-sm transition-all ${
+            catIdx === 0
+              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/15'
+              : 'card text-slate-400 hover:text-white'
+          }`}
+        >
+          {t('templates.cat.all')}
+        </button>
+        {categories.map((cat, i) => (
           <button
-            key={key}
-            onClick={() => setCatIdx(i)}
+            key={cat}
+            type="button"
+            onClick={() => setCatIdx(i + 1)}
             className={`px-4 py-2 rounded-xl text-sm transition-all ${
-              catIdx === i
+              catIdx === i + 1
                 ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/15'
                 : 'card text-slate-400 hover:text-white'
             }`}
           >
-            {t(key)}
+            {CAT_I18N[cat] ? t(CAT_I18N[cat]) : cat}
           </button>
         ))}
       </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="text-red-400/60 hover:text-red-400 ml-3 text-xs"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {!loading && filtered.map(template => (

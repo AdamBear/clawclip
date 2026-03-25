@@ -67,6 +67,30 @@ const STOP_WORDS = new Set(
     '啊',
     '呢',
     '嘛',
+    '然后',
+    '这样',
+    '如果',
+    '因为',
+    '所以',
+    '但是',
+    '可以',
+    '应该',
+    '需要',
+    '使用',
+    '通过',
+    '进行',
+    '实现',
+    '提供',
+    '包括',
+    '根据',
+    '关于',
+    '以及',
+    '方面',
+    '方式',
+    '情况',
+    '问题',
+    '功能',
+    '系统',
     'the',
     'is',
     'are',
@@ -281,6 +305,27 @@ const TAG_COLORS: Record<string, string> = {
   通用: '#64748b',
 };
 
+const DOMAIN_DICT = new Set([
+  '人工智能', '机器学习', '自然语言', '深度学习', '神经网络', '大语言模型', '大模型',
+  '知识库', '向量数据库', '嵌入模型', '提示词', '工作流', '自动化',
+  '工具调用', '函数调用', '会话回放', '成本优化', '性价比', '预算告警',
+  '代码审查', '代码生成', '代码补全', '代码重构', '单元测试', '集成测试',
+  '前端开发', '后端开发', '全栈开发', '数据分析', '数据处理', '数据清洗',
+  '版本控制', '持续集成', '持续部署', '容器化', '微服务',
+  '小红书', '公众号', '自媒体', '内容创作', '文案写作',
+  '竞品分析', '市场调研', '用户画像', '产品设计',
+  '性能优化', '错误处理', '异常处理', '安全检查', '权限控制',
+  '文件操作', '网络请求', '接口调用', '数据库', '缓存策略',
+  '代码', '函数', '变量', '接口', '组件', '模块', '框架', '依赖',
+  '算法', '编程', '调试', '重构', '测试', '编译', '部署', '配置',
+  '服务器', '前端', '后端', '数据', '报告', '文章', '文案',
+  '翻译', '总结', '分析', '搜索', '执行', '优化', '创建', '修改',
+  '费用', '成本', '预算', '消耗', '价格', '模型', '任务', '会话',
+  '邮件', '日程', '客服', '问答', '检索', '写入', '读取',
+]);
+
+const DICT_SORTED = [...DOMAIN_DICT].sort((a, b) => b.length - a.length);
+
 const CJK_RE = /[\u4e00-\u9fff]+/g;
 const ENG_RE = /[a-zA-Z][a-zA-Z0-9]*/g;
 
@@ -293,13 +338,18 @@ function extractChineseNgrams(text: string): string[] {
   const out: string[] = [];
   for (const m of text.matchAll(CJK_RE)) {
     const run = m[0];
-    if (run.length < 2) continue;
-    const maxN = Math.min(4, run.length);
-    for (let n = 2; n <= maxN; n++) {
-      for (let i = 0; i + n <= run.length; i++) {
-        const gram = run.slice(i, i + n);
-        if (!isStopWord(gram)) out.push(gram);
+    let i = 0;
+    while (i < run.length) {
+      let matched = false;
+      for (const word of DICT_SORTED) {
+        if (i + word.length <= run.length && run.slice(i, i + word.length) === word) {
+          if (!isStopWord(word)) out.push(word);
+          i += word.length;
+          matched = true;
+          break;
+        }
       }
+      if (!matched) i += 1;
     }
   }
   return out;

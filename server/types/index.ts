@@ -128,3 +128,17 @@ export interface CostInsight {
   messageZh: string;
   messageEn: string;
 }
+
+export interface SavingSuggestion {
+  currentModel: string;
+  alternativeModel: string;
+  currentCost: number;
+  alternativeCost: number;
+  saving: number;
+  tokens: number;
+}
+
+export interface SavingsReport {
+  totalPotentialSaving: number;
+  suggestions: SavingSuggestion[];
+}
