@@ -1193,7 +1193,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l)
-    localStorage.setItem('clawclip-lang', l)
+    try { localStorage.setItem('clawclip-lang', l) } catch { /* private mode / quota */ }
   }, [])
 
   const t = useCallback((key: string) => {

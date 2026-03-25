@@ -1,3 +1,27 @@
+# Contributing
+
+> [English](#contributing) | [中文](#参与贡献)
+
+Thank you for your interest in ClawClip!
+
+## Before You Start
+
+- Node.js ≥ 18
+- Run `npm run check` (type-checks both server and web) before submitting
+- If you changed build-related configs, also run `npm run build`
+
+## Pull Requests
+
+- Clearly describe the motivation and scope of your changes.
+- If your PR touches **model names, pricing, or ratios** in README or code, please include your **verification source or "data as of" date** in the PR description.
+- All PRs are **reviewed by a human maintainer** before merge (security, copy accuracy, roadmap consistency).
+
+## Code of Conduct
+
+Be friendly and constructive. Issues are welcome for product direction and compatibility discussions.
+
+---
+
 # 参与贡献
 
 感谢你对虾片 (ClawClip) 的兴趣。
@@ -11,7 +35,7 @@
 ## Pull Request
 
 - 请写清楚动机与影响范围；涉及 README 中的**模型名、价格或比例**时，请在 PR 描述中附上**核实来源或「信息截至日期」**。
-- 合入前由维护者进行**人工审查**（安全、文案与路线图一致性）。日常开发中会使用 Agent / OpenClaw 等工作流辅助迭代（戏称「龙虾打工」），**最终责任与发版由人负责**。
+- 合入前由维护者进行**人工审查**（安全、文案与路线图一致性）。
 
 ## 行为准则
 

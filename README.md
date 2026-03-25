@@ -1,6 +1,6 @@
-# 🍤 ClawClip (虾片)
+# 🍤 ClawClip
 
-> **English** | [中文](#这是给谁用的)
+> **English** | [中文](README.zh-CN.md)
 
 **What did your AI Agent actually do?**
 
@@ -8,180 +8,100 @@ ClawClip is a local-first visualization tool for AI Agents. It turns JSONL sessi
 
 **Live demo**: https://clawclip.luelan.online (8 built-in demo sessions, no install needed)
 
+## Quick Start
+
+**Requirements**: Node.js **≥ 18**. First run auto-builds (~1-2 min).
+
 ```bash
 git clone https://github.com/Ylsssq926/clawclip.git
 cd clawclip && npm install && npm start
 # → http://localhost:8080
 ```
 
----
-
-**你的 AI Agent 到底干了什么？**
-
-虾片是一个本地部署的 AI Agent 可视化工具——把 OpenClaw / ZeroClaw 等兼容框架的会话日志变成可交互的时间轴回放，做离线六维能力评测，并追踪 Token 与费用。分析评测**不调用云端 LLM API**（不产生额外模型账单），数据默认留在本机。
-
-**在线体验**: https://clawclip.luelan.online （内置 8 条 Demo 会话，无需安装）
-
-**一句话复制**：虾片 = 本地 Agent 日志 → 回放 + 离线体检分 + 成本与标签，隐私在你电脑。
-
-## 这是给谁用的？
-
-- 你装了 OpenClaw / ZeroClaw，想知道 Agent 每一步在干嘛
-- 你想评估 Agent 的写作、代码、工具调用、检索、安全性和性价比
-- 你想监控 Token 花了多少钱、花在了哪个模型上
-- 你想通过词云和标签快速回顾 Agent 的工作内容
-
-## 怎么用？
-
-**环境**：Node.js **≥ 18**；首次 `npm run build` 可能需要一两分钟并占用一定内存，属正常现象。
+### Development Mode
 
 ```bash
-# 1. 克隆 & 安装
-git clone https://github.com/Ylsssq926/clawclip.git
-cd clawclip && npm install
-
-# 2. 启动（首次会自动构建，约 1-2 分钟）
-npm start
-
-# 打开 http://localhost:8080（端口可通过 PORT 环境变量修改）
-```
-
-### 开发模式
-
-```bash
-# 终端 1：启动后端（tsx watch 热重载）
+# Terminal 1: backend (tsx watch, hot reload)
 npm run dev:server
 
-# 终端 2：启动前端（Vite dev server，端口 3000，/api 自动代理到 8080）
+# Terminal 2: frontend (Vite dev server, port 3000, /api proxied to 8080)
 npm run dev:web
 ```
 
-### 健康检查（部署 / 探活）
+### Where does the data come from?
 
-服务启动后可请求：
+- On startup, ClawClip scans **`~/.openclaw/`** and env vars **`OPENCLAW_STATE_DIR`**, **`CLAWCLIP_LOBSTER_DIRS`** for session **JSONL** files.
+- **No real JSONL?** 8 built-in Demo sessions let you explore replay, benchmark, and cost features.
+- **Only SQLite, no JSONL?** The dashboard shows ecosystem hints — ClawClip currently targets the JSONL session path.
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| 🎬 Session Replay | JSONL logs → interactive timeline with thinking, tool calls, results, and token costs step by step |
+| 📊 6-Dimension Benchmark | Writing, Coding, Tool Use, Retrieval, Safety, Cost Efficiency — S/A/B/C/D rank + radar chart + evolution curve |
+| 💰 Cost Monitor | Token spend trends, model cost breakdown, budget alerts, insights & savings suggestions |
+| ☁️ Word Cloud & Tags | Auto-extracted keywords visualized as a word cloud, session auto-tagging |
+| 📚 Knowledge Base | Import session JSON to build a searchable knowledge base with drag-and-drop upload |
+| 🏆 Leaderboard | Submit benchmark scores and compare your Agent with others |
+| 🛒 Template Market | Pre-built Agent scenario templates, one-click apply + skill management |
+| 🧠 Smart Savings | Cost analysis + alternative model recommendations (powered by PriceToken real-time pricing) |
+
+## Tech Stack
+
+Express + TypeScript | React 18 + Vite + Tailwind CSS | Recharts | Framer Motion | Lucide React
+
+## Roadmap
+
+- [x] Session replay engine + 8 demo sessions
+- [x] 6-dimension benchmark + radar chart + evolution curve
+- [x] Cost monitor + budget alerts
+- [x] Word cloud + auto-tagging
+- [x] Share cards + Landing page
+- [x] Knowledge base import/export + full-text search
+- [x] Leaderboard (submit scores + rankings)
+- [x] Template market + skill management
+- [x] Smart savings / cost optimization (P0 + P1 done)
+- [ ] P2: (optional milestone) runtime/gateway deep integration
+
+## Health Check
 
 ```bash
 curl -s http://localhost:8080/api/health
+# → { "ok": true, "service": "clawclip", "ts": "..." }
 ```
 
-期望返回 JSON，含 `ok`、`service`、`ts` 等字段（`Cache-Control: no-store`）。
-
-### 数据从哪来、边界是什么？
-
-- 启动后会尝试读取 **`~/.openclaw/`** 以及环境变量 **`OPENCLAW_STATE_DIR`**、**`CLAWCLIP_LOBSTER_DIRS`**（额外数据根）下的会话 **JSONL**。
-- **没有真实 JSONL？** 内置 **8 条 Demo** 会话，可先体验回放与评测界面。
-- **只有 SQLite、没有 JSONL？** 仪表盘会显示**生态与兼容提示**——虾片当前以 **JSONL 会话**为主路径，不代表你的框架坏了。
-- **线上 Demo 站**若与本地行为不一致（例如只读、无持久写入），以部署说明为准。
-
-### 质量检查（发版 / 提 PR 前）
+## Type Check (before PR / release)
 
 ```bash
 npm run check
 ```
 
-会对 `server` 与 `web` 分别执行 `tsc --noEmit`（类型检查，不产出文件）。
+Runs `tsc --noEmit` for both `server` and `web` workspaces.
 
-**兼容维护**：大版本迭代前可扫 [OpenClaw 文档索引](https://docs.openclaw.ai/llms.txt) 里 session、environment、Gateway 相关页，核对目录与转写格式是否变化。
+## Contributing
 
-### 错误与 API 说明（简要）
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Security self-check: [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md).
 
-- 未匹配的 `/api/*` 路径返回 **JSON 404**，不会误返回前端 `index.html`。
-- **非法 JSON 请求体**会返回 **400** 及 `invalid_json` 类提示。
-- 前端若遇网络或服务异常，请以界面提示为准；开发时可结合浏览器开发者工具查看响应体。
+## Community
 
-## 智能省钱（路线与边界）
+QQ Group: `892555092`
 
-业界常见的降本方向包括：**按任务复杂度做模型/能力分层**、与 **提示缓存、批处理** 等组合使用；虾片已接入 [PriceToken](https://pricetoken.ai) 实时定价 API，服务启动时自动获取各厂商最新价格，静态表仅作网络不通时的兜底。
+## About the Shrimp
 
-在虾片内的落地分三层（与路线图勾选一致）：
-
-- **P0（已完成 ✅）**：**看清钱花在哪**——会话、模型、任务与时间维度的成本趋势、模型分布、预算告警、高消耗排行均已上线。
-- **P1（已完成 ✅）**：**消费分析与建议**——基于历史日志的成本洞察（7 类提示）和替代模型推荐，自动接入实时定价以保持建议的时效性。不代替用户自动改 Agent 配置。
-- **P2（可选，重依赖生态）**：与运行时/网关的深度联动（如自动路由），单独里程碑，需兼容与安全评审。
-
-当前「智能省钱」主项中 **P2（可选）** 仍为独立里程碑；欢迎通过 issue 讨论你的场景。
-
-## 文档与 Demo 中的「模型」纪律
-
-- 用户可见文案优先使用 **能力档位** 表述，并引导查阅 **提供商官方定价 / 模型目录**。
-- 仓库内 **内置 Demo 会话**中的模型名仅用于**场景演示**，更新前请对照官方信息并在 PR 中注明核实依据或「截至日期」。
-- 你在**本地真实日志**里看到的模型名以你的环境为准。
-
-## 开发与迭代（龙虾也在打工）
-
-日常迭代中会大量使用 **OpenClaw / Agent 工作流**（仓库吉祥物：**龙虾 🍤**）辅助编码、文档与自检，属于**吃自己的狗粮**。  
-**发布、合入与对外承诺仍由维护者做周期性人工审查**（安全、文案诚实、与路线图一致）。详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-外向能力（排行榜、分享、导出等）发版前可参考 [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) 做快速自查。
-
-## 核心功能
-
-### 会话回放
-
-把 JSONL 日志解析成时间轴——Agent 每一步的思考、工具调用、返回结果、Token 消耗，逐步展开。支持自动播放模式，像看视频一样回顾 Agent 执行过程。
-
-### 六维评测
-
-离线分析历史会话，从写作能力、代码能力、工具调用、信息检索、安全合规、性价比六个维度打分。输出 S/A/B/C/D 等级 + 雷达图 + **按评测时间串联的「进化曲线」**（每个点对应你的一次「运行评测」；仅 Demo 数据时会标注为示例趋势）。
-
-### 成本监控
-
-Token 消耗趋势图、模型费用对比、预算告警、高消耗任务排行。
-
-### 词云与标签
-
-自动提取会话关键词生成词云，按频率和类别着色。会话自动标签，支持筛选。
-
-### 知识库
-
-导入文档构建 Agent 专属知识库，支持全文搜索、关键词高亮、拖拽上传和一键导出。适合积累 Agent 的领域知识和调试经验。
-
-### 排行榜
-
-提交你的评测分数，和全网其他用户的 Agent 排名对比。支持查看历史榜单，追踪自己的排名变化。
-
-### 模板市场与技能管理
-
-浏览预置的 Agent 场景模板（代码助手、文案写作、数据分析等），一键应用。同时管理 Agent 已安装的技能，查看状态和版本。
-
-## 技术栈
-
-Express + TypeScript | React 18 + Vite + Tailwind CSS | Recharts | Framer Motion | Lucide React
-
-## 路线图
-
-- [x] 会话回放引擎 + 8 条 Demo 会话
-- [x] 六维评测 + 雷达图 + 进化曲线
-- [x] 成本监控 + 预算告警
-- [x] 词云可视化 + 自动标签
-- [x] 分享卡片 + Landing Page
-- [x] 知识库导入导出 + 全文搜索
-- [x] **排行榜（提交分数 + 全网排名）**
-- [x] **模板市场 + 技能管理**
-- [x] **智能省钱 / 成本优化（P0 + P1 已完成）**
-  - [x] P0：成本可观测——模型分布、趋势、预算告警、高消耗排行
-  - [x] P1：洞察与建议——消费分析 + 替代模型推荐（基于 PriceToken 实时定价）
-  - [ ] P2：（可选里程碑）与运行时/网关的深度联动
-
-## 交流
-
-QQ 群: `892555092`
-
-## 关于这只虾
-
-> 我是一只被主人从 OpenClaw 生态里捞出来的龙虾。
-> 主人说："你天天在后台跑，别人都看不见你干了什么。"
-> 我说："那就把我的工作录下来给他们看呗。"
-> 主人又说："录下来了，但不知道你到底行不行啊。"
-> 我说："那就考我呗，六科全考，我不怕。"
-> 于是就有了虾片。
+> I'm a lobster pulled out of the OpenClaw ecosystem by my owner.
+> Owner said: "You run in the background all day, nobody sees what you do."
+> I said: "Then record my work and show them."
+> Owner: "We recorded it, but we don't know if you're any good."
+> I said: "Then test me — all six subjects, I'm not afraid."
+> And that's how ClawClip was born.
 >
-> —— 🍤 虾片项目吉祥物
+> — 🍤 ClawClip Mascot
 
-## 许可证
+## License
 
 [MIT](LICENSE)
 
 ---
 
-制作: 掠蓝 (Luelan)
+Made by Luelan (掠蓝)

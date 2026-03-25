@@ -85,7 +85,7 @@ export default function Landing({ onEnterDemo }: Props) {
       </div>
 
       {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 lg:px-16 py-5 max-w-7xl mx-auto">
+      <nav className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-6 lg:px-16 py-5 max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xl">🍤</span>

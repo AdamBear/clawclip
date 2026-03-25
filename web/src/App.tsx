@@ -210,7 +210,7 @@ function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
       <div className="flex max-w-screen-2xl mx-auto relative">
         <nav
           className={cn(
-            'w-56 shrink-0 border-r border-white/[0.08] py-4 px-3 flex flex-col bg-[#0b1120] z-40 transition-transform duration-200',
+            'w-56 shrink-0 border-r border-white/[0.08] py-4 px-3 flex flex-col bg-[#0b1120] z-40 transition-transform duration-200 overflow-y-auto',
             'fixed top-[49px] h-[calc(100vh-49px)] lg:sticky lg:top-[49px] lg:h-[calc(100vh-49px-33px)] lg:translate-x-0',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           )}
