@@ -1,6 +1,6 @@
 # 🍤 ClawClip
 
-> **English** | [中文](README.zh-CN.md)
+> **English** | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
 **What did your AI Agent actually do?**
 

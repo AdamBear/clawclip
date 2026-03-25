@@ -14,6 +14,7 @@ export interface DimensionScore {
   score: number; // 0-100
   maxScore: 100;
   details: string;
+  detailsEn?: string;
 }
 
 export interface BenchmarkResult {
@@ -27,7 +28,8 @@ export interface BenchmarkResult {
   totalCost: number;
   avgCostPerSession: number;
   topModel: string;
-  summary: string; // 一句话总结，龙虾口吻
+  summary: string;
+  summaryEn?: string;
 }
 
 export interface BenchmarkHistory {

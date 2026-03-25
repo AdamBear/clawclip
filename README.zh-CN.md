@@ -1,6 +1,6 @@
 # 🍤 虾片 (ClawClip)
 
-> [English](README.md) | **中文**
+> [English](README.md) | **中文** | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
 **你的 AI Agent 到底干了什么？**
 

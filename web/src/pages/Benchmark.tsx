@@ -28,9 +28,11 @@ import {
 interface DimensionScore {
   dimension: string
   label: string
+  labelEn?: string
   score: number
   maxScore: number
   details: string
+  detailsEn?: string
 }
 
 interface BenchmarkResult {
@@ -45,6 +47,7 @@ interface BenchmarkResult {
   avgCostPerSession: number
   topModel: string
   summary: string
+  summaryEn?: string
 }
 
 const DIMENSION_ICONS: Record<string, typeof Pen> = {
@@ -357,7 +360,7 @@ export default function Benchmark() {
                   <span className="text-slate-500">/ 100</span>
                   <Trophy className="w-5 h-5 text-accent ml-1" />
                 </div>
-                <p className="text-sm text-slate-300 leading-relaxed">{result.summary}</p>
+                <p className="text-sm text-slate-300 leading-relaxed">{isZh ? result.summary : (result.summaryEn || result.summary)}</p>
               </div>
             </div>
 
@@ -474,7 +477,7 @@ export default function Benchmark() {
                       <span className="text-sm font-medium text-slate-300">{dim.label}</span>
                     </div>
                     <ScoreBar score={dim.score} color={color} />
-                    <p className="text-xs text-slate-500 mt-1">{dim.details}</p>
+                    <p className="text-xs text-slate-500 mt-1">{isZh ? dim.details : (dim.detailsEn || dim.details)}</p>
                   </div>
                 )
               })}

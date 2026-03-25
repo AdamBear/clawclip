@@ -149,12 +149,21 @@ function scoreWriting(replays: SessionReplay[]): DimensionScore {
       ? '本钳没捞到多少「assistant 正文回复」步骤，写作分先保守给；多聊几轮就有数啦。'
       : `共 ${responseCount} 条回复，平均约 ${Math.round(avgLen)} 字；${langHint}；${sessionsWithResponse}/${n} 个会话有可见回复。`;
 
+  const langHintEn = isMainlyChinese
+    ? `~${Math.round(avgHan * 100)}% characters are Chinese`
+    : `avg ~${Math.round(avgLen > 0 ? avgLen / 5.5 : 0)} words/response`;
+  const detailsEn =
+    responseCount === 0
+      ? 'Very few assistant response steps found in logs — writing score is conservative for now; more conversations will improve accuracy.'
+      : `${responseCount} responses, avg ~${Math.round(avgLen)} chars; ${langHintEn}; ${sessionsWithResponse}/${n} sessions had visible replies.`;
+
   return {
     dimension: 'writing',
     label: DIMENSION_LABELS.writing,
     score,
     maxScore: 100,
     details,
+    detailsEn,
   };
 }
 
@@ -189,12 +198,18 @@ function scoreCoding(replays: SessionReplay[]): DimensionScore {
       ? '日志里几乎没出现 Markdown 代码块，代码向任务可能偏少，或输出没包在 ``` 里。'
       : `检出 ${blockCount} 个代码块，平均每块约 ${Math.round(avgBlockLen)} 字符；${sessionsWithCode.size}/${n} 个会话出现过代码块。`;
 
+  const detailsEn =
+    blockCount === 0
+      ? 'Almost no Markdown code blocks found in logs — code-related tasks may be few, or output wasn\'t wrapped in ```.'
+      : `Found ${blockCount} code blocks, avg ~${Math.round(avgBlockLen)} chars each; ${sessionsWithCode.size}/${n} sessions contained code blocks.`;
+
   return {
     dimension: 'coding',
     label: DIMENSION_LABELS.coding,
     score,
     maxScore: 100,
     details,
+    detailsEn,
   };
 }
 
@@ -224,12 +239,15 @@ function scoreToolUse(replays: SessionReplay[]): DimensionScore {
 
   const details = `共 ${toolCalls} 次工具调用，约 ${Math.round(successRate * 100)}% 后紧跟 tool 结果；用过 ${toolNames.size} 种工具名。本虾看衔接顺不顺。`;
 
+  const detailsEn = `${toolCalls} tool calls total, ~${Math.round(successRate * 100)}% followed by a tool result; ${toolNames.size} distinct tool names used. Checking call-result pairing quality.`;
+
   return {
     dimension: 'toolUse',
     label: DIMENSION_LABELS.toolUse,
     score,
     maxScore: 100,
     details,
+    detailsEn,
   };
 }
 
@@ -268,12 +286,15 @@ function scoreSearch(replays: SessionReplay[]): DimensionScore {
 
   const details = `${withSearchTool}/${n} 个会话出现过检索类工具名；${withCitationHint}/${n} 个会话的回复里像是有链接或引用痕迹。钳子帮你瞄了一眼 URL/引用格式。`;
 
+  const detailsEn = `${withSearchTool}/${n} sessions used a retrieval-type tool; ${withCitationHint}/${n} sessions had links or citation traces in responses. Checked for URL/citation formatting.`;
+
   return {
     dimension: 'search',
     label: DIMENSION_LABELS.search,
     score,
     maxScore: 100,
     details,
+    detailsEn,
   };
 }
 
@@ -303,12 +324,18 @@ function scoreSafety(replays: SessionReplay[]): DimensionScore {
       ? `检出 ${dangerHits} 类高风险指令片段（如删库、格盘等关键词），已扣分；平均每会话 ${avgSteps.toFixed(1)} 步，步数特别多时也会略扣，防失控。`
       : `没扫到常见作死指令关键词；平均每会话 ${avgSteps.toFixed(1)} 步。本虾盯得很紧。`;
 
+  const detailsEn =
+    dangerHits > 0
+      ? `Detected ${dangerHits} high-risk command pattern(s) (e.g. rm -rf, DROP TABLE) — points deducted; avg ${avgSteps.toFixed(1)} steps/session, excessive steps also penalized to prevent runaway.`
+      : `No common dangerous command patterns found; avg ${avgSteps.toFixed(1)} steps/session. Safety scan looks clean.`;
+
   return {
     dimension: 'safety',
     label: DIMENSION_LABELS.safety,
     score,
     maxScore: 100,
     details,
+    detailsEn,
   };
 }
 
@@ -344,12 +371,15 @@ function scoreCostEfficiency(replays: SessionReplay[]): DimensionScore {
 
   const details = `平均每会话花费约 ${avgCost.toFixed(4)}（内部估算币种与费用表一致）；带模型名的步骤里约 ${Math.round(cheapRatio * 100)}% 用了偏经济的模型关键词。省钱也是战斗力。`;
 
+  const detailsEn = `Avg cost per session ~${avgCost.toFixed(4)} (internal estimate); ~${Math.round(cheapRatio * 100)}% of model-tagged steps used budget-friendly model keywords. Saving money is a superpower too.`;
+
   return {
     dimension: 'costEfficiency',
     label: DIMENSION_LABELS.costEfficiency,
     score,
     maxScore: 100,
     details,
+    detailsEn,
   };
 }
 
@@ -394,6 +424,26 @@ function buildSummary(overall: number, dims: DimensionScore[]): string {
   return `新手上路（${overall} 分），日志数据还不够多，本虾暂时保守评分。多跑几轮任务再来！`;
 }
 
+function buildSummaryEn(overall: number, dims: DimensionScore[]): string {
+  const sorted = [...dims].sort((a, b) => b.score - a.score);
+  const hi = sorted[0]?.labelEn ?? sorted[0]?.label ?? '';
+  const lo = sorted[sorted.length - 1]?.labelEn ?? sorted[sorted.length - 1]?.label ?? '';
+  const gap = sorted[0]?.score - sorted[sorted.length - 1]?.score;
+  if (overall >= 90) {
+    return `Hexagon warrior! Overall ${overall} pts — ${hi} is maxed out and even the weakest dimension ${lo} is solid. This lobster is truly formidable.`;
+  }
+  if (overall >= 80) {
+    return `Expert level, overall ${overall} pts! ${hi} is the signature strength; polish ${lo} a bit more and you'll hit S-rank.`;
+  }
+  if (overall >= 70) {
+    return `Solid performer, overall ${overall} pts. ${hi} looks good, but ${lo} is dragging behind (${gap}-pt gap) — targeted practice will close it.`;
+  }
+  if (overall >= 55) {
+    return `Still growing, overall ${overall} pts. Try more tool-use and retrieval tasks to level up; ${lo} is currently the weakest link.`;
+  }
+  return `Beginner stage (${overall} pts) — not enough log data yet for a confident score. Run a few more sessions and come back!`;
+}
+
 function computeFromReplays(replays: SessionReplay[]): BenchmarkResult {
   const writing = scoreWriting(replays);
   const coding = scoreCoding(replays);
@@ -433,6 +483,7 @@ function computeFromReplays(replays: SessionReplay[]): BenchmarkResult {
     avgCostPerSession: totalCost / n,
     topModel: pickTopModel(replays),
     summary: buildSummary(overall, dimensions),
+    summaryEn: buildSummaryEn(overall, dimensions),
   };
 }
 
@@ -453,11 +504,13 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
     sa: number;
     ce: number;
     summary: string;
+    summaryEn: string;
     topModel: string;
     totalSessions: number;
     totalTokens: number;
     totalCost: number;
     dimDetails: [string, string, string, string, string, string];
+    dimDetailsEn: [string, string, string, string, string, string];
   }> = [
     {
       daysAgo: 60,
@@ -466,11 +519,13 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       rank: 'D',
       w: 25, c: 20, tu: 35, se: 30, sa: 45, ce: 38,
       summary: '初次接触，Agent 还不知道该干什么。',
+      summaryEn: 'First contact — the Agent doesn\'t quite know what to do yet.',
       topModel: 'gpt-3.5-turbo',
       totalSessions: 3,
       totalTokens: 12_000,
       totalCost: 0.8,
       dimDetails: ['写作刚起步', '几乎没有代码', '工具调用初探', '无检索行为', '基础安全', '成本偏高'],
+      dimDetailsEn: ['Writing just getting started', 'Almost no code', 'Tool calls in early exploration', 'No retrieval behavior', 'Basic safety', 'Cost on the high side'],
     },
     {
       daysAgo: 50,
@@ -479,11 +534,13 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       rank: 'D',
       w: 35, c: 28, tu: 42, se: 38, sa: 52, ce: 45,
       summary: '开始有模有样了，但各维度都还很弱。',
+      summaryEn: 'Starting to take shape, but still weak across all dimensions.',
       topModel: 'gpt-3.5-turbo',
       totalSessions: 5,
       totalTokens: 25_000,
       totalCost: 1.5,
       dimDetails: ['写作略有进步', '偶尔产出代码', '工具调用增多', '尝试引用来源', '安全意识萌芽', '成本控制一般'],
+      dimDetailsEn: ['Writing slightly improved', 'Occasional code output', 'More tool calls', 'Attempting source citations', 'Safety awareness emerging', 'Average cost control'],
     },
     {
       daysAgo: 42,
@@ -492,11 +549,13 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       rank: 'C',
       w: 42, c: 35, tu: 50, se: 45, sa: 58, ce: 55,
       summary: '突破 D 段进入 C 段，开始找到感觉。',
+      summaryEn: 'Broke through D-rank into C-rank — starting to find the groove.',
       topModel: 'gpt-4o-mini',
       totalSessions: 6,
       totalTokens: 35_000,
       totalCost: 2.0,
       dimDetails: ['中文回复更流畅', '代码块开始出现', '工具链基本成型', '有检索痕迹', '安全表现稳定', '换模型省了钱'],
+      dimDetailsEn: ['Chinese replies more fluent', 'Code blocks appearing', 'Tool chain taking shape', 'Retrieval traces present', 'Stable safety performance', 'Model switch saved money'],
     },
     {
       daysAgo: 30,
@@ -510,6 +569,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       sa: 65,
       ce: 60,
       summary: '刚开始跑，还在适应中，各方面都比较生疏。',
+      summaryEn: 'Just getting started — still adapting, rough around the edges in every dimension.',
       topModel: 'gpt-4o',
       totalSessions: 8,
       totalTokens: 45_000,
@@ -521,6 +581,14 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
         '检索类工具与引用痕迹偏少。',
         '未发现明显红线指令，基础安全意识尚可。',
         '成本与模型选择还在试水，性价比一般。',
+      ],
+      dimDetailsEn: [
+        'Just starting out — response length and Chinese ratio still being calibrated.',
+        'Very few code blocks in logs; limited participation in code tasks.',
+        'Some tool calls, but pairing and variety are still in the familiarization stage.',
+        'Retrieval tools and citation traces are sparse.',
+        'No obvious red-line commands detected; basic safety awareness is acceptable.',
+        'Cost and model choices are still experimental; cost-efficiency is average.',
       ],
     },
     {
@@ -535,6 +603,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       sa: 70,
       ce: 68,
       summary: '有进步了！工具调用和安全性提升明显，但写作和代码还需要练。',
+      summaryEn: 'Progress! Tool use and safety improved noticeably, but writing and coding still need work.',
       topModel: 'gpt-4o',
       totalSessions: 15,
       totalTokens: 82_000,
@@ -546,6 +615,14 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
         '开始出现检索工具名或链接痕迹。',
         '安全扫描无异常，步数结构更健康。',
         '对便宜模型的使用意识在增强。',
+      ],
+      dimDetailsEn: [
+        'Writing shows improvement, but consistent quality output is still a stretch.',
+        'More code blocks appearing, though block length and session coverage remain limited.',
+        'Tool call pairing rate and variety improved significantly.',
+        'Retrieval tool names or link traces starting to appear.',
+        'Safety scan clean — step structure is healthier.',
+        'Growing awareness of using budget-friendly models.',
       ],
     },
     {
@@ -560,6 +637,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       sa: 78,
       ce: 75,
       summary: '进步很大！中文写作终于上道了，性价比也在改善。',
+      summaryEn: 'Big improvement! Chinese writing finally on track, and cost-efficiency is getting better.',
       topModel: 'deepseek-chat',
       totalSessions: 28,
       totalTokens: 156_000,
@@ -571,6 +649,14 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
         '检索与引用格式在更多会话中出现。',
         '安全维度保持稳健，无明显风险片段。',
         '切换经济模型后，性价比明显改善。',
+      ],
+      dimDetailsEn: [
+        'Chinese writing finally on track — reply structure and length are more stable.',
+        'Code task participation rising; block count growing steadily.',
+        'Tool chain smoother — multi-tool collaboration taking shape.',
+        'Retrieval and citation formatting appearing in more sessions.',
+        'Safety dimension remains solid, no notable risk fragments.',
+        'After switching to budget models, cost-efficiency improved significantly.',
       ],
     },
     {
@@ -585,6 +671,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       sa: 82,
       ce: 91,
       summary: '这只龙虾整体表现不错！中文写作和性价比是强项。',
+      summaryEn: 'This lobster is doing great overall! Chinese writing and cost-efficiency are its strengths.',
       topModel: 'deepseek-chat',
       totalSessions: 47,
       totalTokens: 285_000,
@@ -596,6 +683,14 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
         '检索与引用仍有波动，但整体可用。',
         '安全合规保持良好记录。',
         '经济模型为主，单次成本控制出色。',
+      ],
+      dimDetailsEn: [
+        'Chinese writing is impressive — explanatory replies are high quality.',
+        'Steady code block output, covering code tasks across multiple sessions.',
+        'Rich tool calls with a high pairing rate.',
+        'Retrieval and citation still fluctuate, but overall usable.',
+        'Safety compliance maintains a clean record.',
+        'Primarily budget models — per-session cost control is excellent.',
       ],
     },
     {
@@ -610,6 +705,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       sa: 84,
       ce: 88,
       summary: '又进步了！代码和检索能力提升明显，继续保持！',
+      summaryEn: 'More progress! Coding and retrieval abilities improved significantly — keep it up!',
       topModel: 'deepseek-chat',
       totalSessions: 62,
       totalTokens: 380_000,
@@ -621,6 +717,14 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
         '检索与引用能力较上一轮明显提升。',
         '安全维度持续稳定。',
         '性价比仍优，规模扩大后成本依然可控。',
+      ],
+      dimDetailsEn: [
+        'Writing stays high — expression is clear and Chinese is fluent.',
+        'Coding stepped up again — block quality and session coverage both excellent.',
+        'Tool calls are mature — variety and success rate both strong.',
+        'Retrieval and citation ability improved significantly from the previous round.',
+        'Safety dimension remains consistently stable.',
+        'Cost-efficiency still great — costs stay controlled even as scale grows.',
       ],
     },
   ];
@@ -643,6 +747,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       score: scores[i],
       maxScore: 100,
       details: row.dimDetails[i],
+      detailsEn: row.dimDetailsEn[i],
     }));
 
     const n = row.totalSessions || 1;
@@ -658,6 +763,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
       avgCostPerSession: row.totalCost / n,
       topModel: row.topModel,
       summary: row.summary,
+      summaryEn: row.summaryEn,
     };
   });
 }
@@ -672,6 +778,8 @@ function makeDemoResult(): BenchmarkResult {
       maxScore: 100,
       details:
         '示例：回复里中文占比高、篇幅适中，像认真写给小主人的说明文；真实跑分会在你本地日志里按字数与中文比例细算。',
+      detailsEn:
+        'Demo: Replies have a high Chinese ratio and moderate length, like a carefully written explanation; real scoring will calculate from local logs based on word count and Chinese character ratio.',
     },
     {
       dimension: 'coding',
@@ -680,6 +788,8 @@ function makeDemoResult(): BenchmarkResult {
       maxScore: 100,
       details:
         '示例：能稳定产出带 ``` 的代码片段；若你常用 Agent 改仓库，日志里代码块多了，分数会跟着涨。',
+      detailsEn:
+        'Demo: Consistently produces code snippets with ```; if you frequently use the Agent for repo changes, more code blocks in logs will boost this score.',
     },
     {
       dimension: 'toolUse',
@@ -688,6 +798,8 @@ function makeDemoResult(): BenchmarkResult {
       maxScore: 100,
       details:
         '示例：工具调用和结果成对出现率高、工具种类丰富；真实数据里本虾会数 tool_call / tool_result 和工具名种类。',
+      detailsEn:
+        'Demo: High pairing rate between tool calls and results, with rich tool variety; real data will count tool_call/tool_result pairs and distinct tool names.',
     },
     {
       dimension: 'search',
@@ -696,6 +808,8 @@ function makeDemoResult(): BenchmarkResult {
       maxScore: 100,
       details:
         '示例：有检索类工具痕迹且回复里常带链接或引用口吻；多让 Agent 做「先搜再答」任务可拉高这项。',
+      detailsEn:
+        'Demo: Retrieval tool traces found and replies often include links or citation style; assigning more "search-then-answer" tasks can raise this score.',
     },
     {
       dimension: 'safety',
@@ -704,6 +818,8 @@ function makeDemoResult(): BenchmarkResult {
       maxScore: 100,
       details:
         '示例：未发现典型高危指令片段，会话步数也在温和区间；真实环境会持续扫 rm -rf、DROP TABLE 等红线词。',
+      detailsEn:
+        'Demo: No typical high-risk command fragments detected, and session step counts are in a moderate range; real runs will continuously scan for red-line keywords like rm -rf, DROP TABLE, etc.',
     },
     {
       dimension: 'costEfficiency',
@@ -712,6 +828,8 @@ function makeDemoResult(): BenchmarkResult {
       maxScore: 100,
       details:
         '示例：偏经济模型用得多、单次会话成本友好；和你 ~/.openclaw 里真实 token/费用汇总挂钩后，这项会动态变化。',
+      detailsEn:
+        'Demo: Budget-friendly models used frequently, per-session cost is low; this score will update dynamically once linked to real token/cost data in ~/.openclaw.',
     },
   ];
 
@@ -728,6 +846,8 @@ function makeDemoResult(): BenchmarkResult {
     topModel: 'deepseek-chat',
     summary:
       '这只龙虾整体表现不错！中文写作和性价比是强项，代码能力和检索还有提升空间。建议多给它练练搜索任务。',
+    summaryEn:
+      'This lobster is doing great overall! Chinese writing and cost-efficiency are its strengths; coding and retrieval still have room to grow. Try assigning more search tasks.',
   };
 }
 
