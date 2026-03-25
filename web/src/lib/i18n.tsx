@@ -1180,7 +1180,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() => {
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('clawclip-lang') : null
     if (saved && saved in locales) return saved as Locale
-    return 'zh'
+    const nav = typeof navigator !== 'undefined' ? navigator.language?.toLowerCase() ?? '' : ''
+    if (nav.startsWith('zh')) return 'zh'
+    if (nav.startsWith('ja')) return 'ja'
+    if (nav.startsWith('ko')) return 'ko'
+    if (nav.startsWith('es')) return 'es'
+    if (nav.startsWith('fr')) return 'fr'
+    if (nav.startsWith('de')) return 'de'
+    if (nav.startsWith('en')) return 'en'
+    return 'en'
   })
 
   const setLocale = useCallback((l: Locale) => {

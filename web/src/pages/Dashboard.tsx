@@ -221,7 +221,7 @@ export default function Dashboard({ onNavigate }: Props) {
                     key={`${n.rootId ?? 'note'}-${i}`}
                     className={n.severity === 'warn' ? 'text-amber-200/85' : undefined}
                   >
-                    {locale === 'en' || locale === 'de' || locale === 'fr' || locale === 'es' ? n.messageEn : n.messageZh}
+                    {locale === 'zh' ? n.messageZh : n.messageEn}
                   </li>
                 ))}
               </ul>

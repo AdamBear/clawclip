@@ -9,10 +9,11 @@ export type BenchmarkDimension =
 
 export interface DimensionScore {
   dimension: BenchmarkDimension;
-  label: string; // 中文标签
+  label: string;
+  labelEn?: string;
   score: number; // 0-100
   maxScore: 100;
-  details: string; // 评分依据说明
+  details: string;
 }
 
 export interface BenchmarkResult {
@@ -40,4 +41,13 @@ export const DIMENSION_LABELS: Record<BenchmarkDimension, string> = {
   search: '信息检索',
   safety: '安全合规',
   costEfficiency: '性价比',
+};
+
+export const DIMENSION_LABELS_EN: Record<BenchmarkDimension, string> = {
+  writing: 'Writing',
+  coding: 'Coding',
+  toolUse: 'Tool Use',
+  search: 'Retrieval',
+  safety: 'Safety',
+  costEfficiency: 'Cost Efficiency',
 };

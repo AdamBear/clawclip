@@ -9,7 +9,7 @@ import type {
   BenchmarkResult,
   DimensionScore,
 } from '../types/benchmark.js';
-import { DIMENSION_LABELS } from '../types/benchmark.js';
+import { DIMENSION_LABELS, DIMENSION_LABELS_EN } from '../types/benchmark.js';
 
 function historyPath(): string {
   return path.join(getClawclipStateDir(), 'benchmark-history.json');
@@ -403,6 +403,9 @@ function computeFromReplays(replays: SessionReplay[]): BenchmarkResult {
   const costEfficiency = scoreCostEfficiency(replays);
 
   const dimensions = [writing, coding, toolUse, search, safety, costEfficiency];
+  for (const d of dimensions) {
+    d.labelEn = DIMENSION_LABELS_EN[d.dimension];
+  }
 
   let overall = 0;
   for (const d of dimensions) {
@@ -636,6 +639,7 @@ function buildDemoHistoryResults(reference: Date = new Date()): BenchmarkResult[
     const dimensions: DimensionScore[] = dimsOrder.map((dimension, i) => ({
       dimension,
       label: DIMENSION_LABELS[dimension],
+      labelEn: DIMENSION_LABELS_EN[dimension],
       score: scores[i],
       maxScore: 100,
       details: row.dimDetails[i],

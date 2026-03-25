@@ -127,7 +127,7 @@ function newEntryId(): string {
 const DEMO_ENTRIES: LeaderboardEntry[] = [
   {
     id: 'demo-deep',
-    nickname: '深海龙虾王',
+    nickname: 'DeepLobster',
     score: 92,
     rank: 'S',
     topModel: 'deepseek-chat',
@@ -144,7 +144,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-code',
-    nickname: '代码小能手',
+    nickname: 'CodeWizard',
     score: 88,
     rank: 'A',
     topModel: 'gpt-4o',
@@ -161,7 +161,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-eff',
-    nickname: '效率狂魔',
+    nickname: 'SpeedRunner',
     score: 85,
     rank: 'A',
     topModel: 'deepseek-chat',
@@ -178,7 +178,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-shrimp',
-    nickname: '虾兵蟹将',
+    nickname: 'AgentPro',
     score: 81,
     rank: 'A',
     topModel: 'claude-sonnet-4',
@@ -195,7 +195,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-explore',
-    nickname: 'AI探索者',
+    nickname: 'Explorer',
     score: 78,
     rank: 'A',
     topModel: 'gpt-4o-mini',
@@ -212,7 +212,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-new',
-    nickname: '新手上路',
+    nickname: 'Beginner',
     score: 72,
     rank: 'B',
     topModel: 'deepseek-chat',
@@ -229,7 +229,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-xhs',
-    nickname: '小红书达人',
+    nickname: 'ContentKing',
     score: 68,
     rank: 'B',
     topModel: 'qwen-max',
@@ -246,7 +246,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-fish',
-    nickname: '摸鱼选手',
+    nickname: 'ChillBot',
     score: 61,
     rank: 'B',
     topModel: 'deepseek-chat',
@@ -263,7 +263,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-pit',
-    nickname: '刚入坑',
+    nickname: 'Rookie',
     score: 52,
     rank: 'C',
     topModel: 'gpt-4o-mini',
@@ -280,7 +280,7 @@ const DEMO_ENTRIES: LeaderboardEntry[] = [
   },
   {
     id: 'demo-pass',
-    nickname: '路过的',
+    nickname: 'Passerby',
     score: 45,
     rank: 'C',
     topModel: 'gpt-4o',

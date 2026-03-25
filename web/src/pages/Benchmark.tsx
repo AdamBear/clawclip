@@ -119,8 +119,13 @@ function mergeTimelineHistory(history: BenchmarkResult[], latest: BenchmarkResul
   return Array.from(byId.values()).sort((a, b) => new Date(a.runAt).getTime() - new Date(b.runAt).getTime())
 }
 
+function dimLabel(d: { label: string; labelEn?: string }, zh: boolean): string {
+  return zh ? d.label : (d.labelEn || d.label)
+}
+
 export default function Benchmark() {
   const { t, locale } = useI18n()
+  const isZh = locale === 'zh'
   const [result, setResult] = useState<BenchmarkResult | null>(null)
   const [history, setHistory] = useState<BenchmarkResult[]>([])
   const [compareId, setCompareId] = useState<string | null>(null)
@@ -195,7 +200,7 @@ export default function Benchmark() {
     return (result.dimensions ?? []).map(d => {
       const other = compareResult?.dimensions?.find(x => x.dimension === d.dimension)
       return {
-        subject: d.label,
+        subject: dimLabel(d, isZh),
         score: d.score,
         compareScore: other?.score,
         fullMark: 100,
@@ -434,7 +439,7 @@ export default function Benchmark() {
                   const other = (compareResult.dimensions ?? []).find(x => x.dimension === d.dimension)
                   const prev = other?.score ?? d.score
                   const diff = d.score - prev
-                  const label = `${d.label} ${diff > 0 ? '+' : ''}${diff}`
+                  const label = `${dimLabel(d, isZh)} ${diff > 0 ? '+' : ''}${diff}`
                   if (diff > 0) {
                     return (
                       <span key={d.dimension} className="text-xs px-2.5 py-1 rounded-lg bg-green-500/15 text-green-400 border border-green-500/30">
@@ -451,7 +456,7 @@ export default function Benchmark() {
                   }
                   return (
                     <span key={d.dimension} className="text-xs px-2.5 py-1 rounded-lg bg-slate-500/10 text-slate-500 border border-surface-border">
-                      {d.label} 0 —
+                      {dimLabel(d, isZh)} 0 —
                     </span>
                   )
                 })}

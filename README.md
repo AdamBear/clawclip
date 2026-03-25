@@ -1,4 +1,20 @@
-# 🍤 虾片 (ClawClip)
+# 🍤 ClawClip (虾片)
+
+> **English** | [中文](#这是给谁用的)
+
+**What did your AI Agent actually do?**
+
+ClawClip is a local-first visualization tool for AI Agents. It turns JSONL session logs from OpenClaw / ZeroClaw (and compatible frameworks) into interactive timeline replays, runs offline 6-dimension benchmarks, and tracks token costs. All analysis runs **locally — no LLM API calls, no extra bills, data stays on your machine.**
+
+**Live demo**: https://clawclip.luelan.online (8 built-in demo sessions, no install needed)
+
+```bash
+git clone https://github.com/Ylsssq926/clawclip.git
+cd clawclip && npm install && npm start
+# → http://localhost:8080
+```
+
+---
 
 **你的 AI Agent 到底干了什么？**
 
