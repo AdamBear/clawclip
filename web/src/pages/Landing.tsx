@@ -278,16 +278,21 @@ export default function Landing({ onEnterDemo }: Props) {
                 <div className="flex-1 h-6 rounded-md bg-slate-700/50 max-w-xs" />
               </div>
               <div className="grid grid-cols-4 gap-3">
-                {['🟢 Running', '$3.42', '15 Skills', '8 Sessions'].map((cell, i) => (
+                {[
+                  { label: t('dashboard.stat.cli'), value: '🟢 Online' },
+                  { label: t('dashboard.stat.monthCost'), value: '$3.42' },
+                  { label: t('nav.skills'), value: '15' },
+                  { label: t('dashboard.stat.sessionsLabel'), value: '8' },
+                ].map((cell, i) => (
                   <div key={i} className="rounded-lg bg-slate-700/40 border border-slate-600/30 p-3">
-                    <div className="text-[10px] text-slate-500 mb-1">{['Status', 'Cost', 'Skills', 'Sessions'][i]}</div>
-                    <div className="text-sm font-bold text-slate-200">{cell}</div>
+                    <div className="text-[10px] text-slate-500 mb-1 truncate">{cell.label}</div>
+                    <div className="text-sm font-bold text-slate-200">{cell.value}</div>
                   </div>
                 ))}
               </div>
               <div className="grid grid-cols-12 gap-3">
                 <div className="col-span-8 rounded-lg bg-slate-700/30 border border-slate-600/30 p-3 h-28">
-                  <div className="text-[10px] text-slate-500 mb-2">Token Trend</div>
+                  <div className="text-[10px] text-slate-500 mb-2">{t('cost.chart.title')}</div>
                   <div className="flex items-end gap-1 h-16">
                     {[40, 65, 50, 80, 55, 90, 70, 85, 60, 95, 75, 88].map((h, i) => (
                       <div key={i} className="flex-1 rounded-t bg-gradient-to-t from-blue-500 to-cyan-400 opacity-70" style={{ height: `${h}%` }} />
@@ -295,7 +300,7 @@ export default function Landing({ onEnterDemo }: Props) {
                   </div>
                 </div>
                 <div className="col-span-4 rounded-lg bg-slate-700/30 border border-slate-600/30 p-3 h-28">
-                  <div className="text-[10px] text-slate-500 mb-2">Radar</div>
+                  <div className="text-[10px] text-slate-500 mb-2">{t('benchmark.curve.title')}</div>
                   <div className="flex items-center justify-center h-16">
                     <svg viewBox="0 0 100 100" className="w-16 h-16">
                       <polygon points="50,10 90,35 80,80 20,80 10,35" fill="none" stroke="rgba(100,116,139,0.3)" strokeWidth="1" />

@@ -38,7 +38,7 @@ function triggerBlobDownload(blob: Blob, filename: string) {
 }
 
 export default function Knowledge() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [qInput, setQInput] = useState('')
   const [activeQuery, setActiveQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
@@ -114,7 +114,11 @@ export default function Knowledge() {
       let msg = t('knowledge.import.success')
       try {
         const j = await res.json()
-        if (j && typeof j.message === 'string') msg = j.message
+        if (j && typeof j.imported === 'number') {
+          msg = locale === 'en'
+            ? `Imported ${j.imported} session(s), ${j.total ?? '?'} total in library.`
+            : `已导入 ${j.imported} 条会话，知识库共 ${j.total ?? '?'} 条。`
+        }
       } catch {
         /* ignore */
       }
