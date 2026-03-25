@@ -741,23 +741,31 @@ export class BenchmarkRunner {
   /** 执行一次评测，基于现有日志数据 */
   runBenchmark(): BenchmarkResult {
     const metas = sessionParser.getSessions();
+    const demoOnly = isBuiltinDemoOnly(metas);
     let result: BenchmarkResult;
 
-    if (isBuiltinDemoOnly(metas)) {
+    if (demoOnly) {
       result = makeDemoResult();
     } else {
       const replays = loadAllReplays();
       result = replays.length ? computeFromReplays(replays) : makeDemoResult();
     }
 
-    const hist = this.readHistoryFile();
-    hist.results.push(result);
-    this.writeHistory(hist);
+    if (!demoOnly) {
+      const hist = this.readHistoryFile();
+      hist.results.push(result);
+      this.writeHistory(hist);
+    }
+
     return result;
   }
 
-  /** 获取评测历史 */
+  /** 获取评测历史（Demo 模式返回虚拟曲线，不落盘） */
   getHistory(): BenchmarkHistory {
+    const metas = sessionParser.getSessions();
+    if (isBuiltinDemoOnly(metas)) {
+      return { results: buildDemoHistoryResults() };
+    }
     const h = this.readHistoryFile();
     if (h.results.length === 0) {
       return { results: buildDemoHistoryResults() };
@@ -767,11 +775,13 @@ export class BenchmarkRunner {
 
   /** 获取最近一次评测 */
   getLatest(): BenchmarkResult | null {
-    const { results } = this.readHistoryFile();
-    if (results.length === 0) {
+    const metas = sessionParser.getSessions();
+    if (isBuiltinDemoOnly(metas)) {
       const demos = buildDemoHistoryResults();
       return demos[demos.length - 1] ?? null;
     }
+    const { results } = this.readHistoryFile();
+    if (results.length === 0) return null;
     return results.reduce((a, b) => (a.runAt.getTime() >= b.runAt.getTime() ? a : b));
   }
 

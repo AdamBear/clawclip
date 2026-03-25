@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Check, ArrowRight } from 'lucide-react'
+import { useI18n } from '../lib/i18n'
 
 interface Template {
   id: string
@@ -10,11 +11,20 @@ interface Template {
   skills: string[]
 }
 
-const CATEGORIES = ['全部', '效率', '创作', '开发', '客服']
+const CAT_KEYS = [
+  'templates.cat.all',
+  'templates.cat.efficiency',
+  'templates.cat.creative',
+  'templates.cat.dev',
+  'templates.cat.support',
+] as const
+
+const CAT_RAW = ['全部', '效率', '创作', '开发', '客服'] as const
 
 export default function TemplateMarket() {
+  const { t } = useI18n()
   const [templates, setTemplates] = useState<Template[]>([])
-  const [category, setCategory] = useState('全部')
+  const [catIdx, setCatIdx] = useState(0)
   const [applied, setApplied] = useState<Set<string>>(new Set())
   const [applying, setApplying] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -27,7 +37,7 @@ export default function TemplateMarket() {
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = category === '全部' ? templates : templates.filter(t => t.category === category)
+  const filtered = catIdx === 0 ? templates : templates.filter(tmpl => tmpl.category === CAT_RAW[catIdx])
 
   const handleApply = async (id: string) => {
     setApplying(id)
@@ -37,15 +47,15 @@ export default function TemplateMarket() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       })
-      if (!res.ok) { alert('导入失败，请重试'); return }
+      if (!res.ok) { alert(t('templates.error.apply')); return }
       const result = await res.json()
       if (result.success) {
         setApplied(prev => new Set(prev).add(id))
       } else {
-        alert(result.message || '导入失败')
+        alert(result.message || t('templates.error.apply'))
       }
     } catch {
-      alert('网络错误，请检查后端是否运行')
+      alert(t('templates.error.network'))
     } finally {
       setApplying(null)
     }
@@ -53,21 +63,21 @@ export default function TemplateMarket() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-2">场景模板</h2>
-      <p className="text-slate-400 text-sm mb-6">预设的中文工作流，一键导入到你的龙虾</p>
+      <h2 className="text-2xl font-bold mb-2">{t('templates.title')}</h2>
+      <p className="text-slate-400 text-sm mb-6">{t('templates.subtitle')}</p>
 
-      <div className="flex gap-2 mb-6">
-        {CATEGORIES.map(cat => (
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {CAT_KEYS.map((key, i) => (
           <button
-            key={cat}
-            onClick={() => setCategory(cat)}
+            key={key}
+            onClick={() => setCatIdx(i)}
             className={`px-4 py-2 rounded-xl text-sm transition-all ${
-              category === cat
+              catIdx === i
                 ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/15'
                 : 'card text-slate-400 hover:text-white'
             }`}
           >
-            {cat}
+            {t(key)}
           </button>
         ))}
       </div>
@@ -96,11 +106,11 @@ export default function TemplateMarket() {
               }`}
             >
               {applied.has(template.id) ? (
-                <><Check className="w-4 h-4" /> 已导入</>
+                <><Check className="w-4 h-4" /> {t('templates.applied')}</>
               ) : applying === template.id ? (
-                '导入中...'
+                t('templates.applying')
               ) : (
-                <><ArrowRight className="w-4 h-4" /> 一键导入</>
+                <><ArrowRight className="w-4 h-4" /> {t('templates.apply')}</>
               )}
             </button>
           </div>
@@ -108,7 +118,7 @@ export default function TemplateMarket() {
       </div>
 
       {!loading && filtered.length === 0 && (
-        <div className="text-center py-12 text-slate-500"><p>该分类暂无模板</p></div>
+        <div className="text-center py-12 text-slate-500"><p>{t('templates.empty')}</p></div>
       )}
       {loading && (
         <div className="space-y-4">

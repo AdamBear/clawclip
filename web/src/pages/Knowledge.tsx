@@ -1,6 +1,7 @@
 import { useState, useCallback, type DragEvent, type ChangeEvent } from 'react'
 import { Search, Download, Upload, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useI18n } from '../lib/i18n'
 
 interface SearchMatch {
   stepIndex: number
@@ -37,6 +38,7 @@ function triggerBlobDownload(blob: Blob, filename: string) {
 }
 
 export default function Knowledge() {
+  const { t } = useI18n()
   const [qInput, setQInput] = useState('')
   const [activeQuery, setActiveQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
@@ -63,27 +65,27 @@ export default function Knowledge() {
     setSearchResults(null)
     fetch(`/api/knowledge/search?q=${encodeURIComponent(q)}`)
       .then(res => {
-        if (!res.ok) throw new Error(`请求失败 (${res.status})`)
+        if (!res.ok) throw new Error(`${t('knowledge.search.failStatus')} (${res.status})`)
         return res.json() as Promise<{ results?: SearchResultItem[] }>
       })
       .then(data => {
         setSearchResults(Array.isArray(data.results) ? data.results : [])
       })
-      .catch(() => setSearchError('搜索失败，请检查网络或后端服务'))
+      .catch(() => setSearchError(t('knowledge.search.error')))
       .finally(() => setSearchLoading(false))
-  }, [qInput])
+  }, [qInput, t])
 
   const exportAll = async (format: 'json' | 'markdown') => {
     setExporting(format)
     setExportError(null)
     try {
       const res = await fetch(`/api/knowledge/export-all?format=${format}`)
-      if (!res.ok) throw new Error(`导出失败 (${res.status})`)
+      if (!res.ok) throw new Error(`${t('knowledge.export.failStatus')} (${res.status})`)
       const blob = await res.blob()
       const name = format === 'json' ? 'knowledge-sessions.json' : 'knowledge-sessions.md'
       triggerBlobDownload(blob, name)
     } catch {
-      setExportError('导出失败，请稍后重试')
+      setExportError(t('knowledge.export.error'))
     } finally {
       setExporting(null)
     }
@@ -97,7 +99,7 @@ export default function Knowledge() {
       try {
         body = JSON.parse(text)
       } catch {
-        setImportMessage({ ok: false, text: '文件不是有效的 JSON' })
+        setImportMessage({ ok: false, text: t('knowledge.import.badJson') })
         return
       }
       const res = await fetch('/api/knowledge/import', {
@@ -109,7 +111,7 @@ export default function Knowledge() {
         const errText = await res.text().catch(() => '')
         throw new Error(errText || `HTTP ${res.status}`)
       }
-      let msg = '导入成功'
+      let msg = t('knowledge.import.success')
       try {
         const j = await res.json()
         if (j && typeof j.message === 'string') msg = j.message
@@ -118,7 +120,7 @@ export default function Knowledge() {
       }
       setImportMessage({ ok: true, text: msg })
     } catch {
-      setImportMessage({ ok: false, text: '导入失败，请检查文件与后端服务' })
+      setImportMessage({ ok: false, text: t('knowledge.import.error') })
     } finally {
       setImportLoading(false)
     }
@@ -126,7 +128,7 @@ export default function Knowledge() {
 
   const onFile = (file: File | undefined) => {
     if (!file || !file.name.toLowerCase().endsWith('.json')) {
-      setImportMessage({ ok: false, text: '请选择 .json 文件' })
+      setImportMessage({ ok: false, text: t('knowledge.import.invalid') })
       return
     }
     const reader = new FileReader()
@@ -134,7 +136,7 @@ export default function Knowledge() {
       const text = typeof reader.result === 'string' ? reader.result : ''
       void postImport(text)
     }
-    reader.onerror = () => setImportMessage({ ok: false, text: '读取文件失败' })
+    reader.onerror = () => setImportMessage({ ok: false, text: t('knowledge.import.error') })
     reader.readAsText(file, 'UTF-8')
   }
 
@@ -156,11 +158,10 @@ export default function Knowledge() {
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-white mb-1">知识库</h2>
-        <p className="text-slate-400 text-sm">导出、导入、搜索你的 Agent 会话数据</p>
+        <h2 className="text-2xl font-bold text-white mb-1">{t('knowledge.title')}</h2>
+        <p className="text-slate-400 text-sm">{t('knowledge.subtitle')}</p>
       </div>
 
-      {/* 搜索 */}
       <motion.section
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -170,7 +171,7 @@ export default function Knowledge() {
           <div className="p-2 rounded-lg bg-blue-500/10">
             <Search className="w-5 h-5 text-blue-400" />
           </div>
-          <h3 className="text-base font-semibold text-white">搜索</h3>
+          <h3 className="text-base font-semibold text-white">{t('knowledge.search')}</h3>
         </div>
         <div className="flex gap-2 mb-4">
           <div className="relative flex-1">
@@ -180,7 +181,7 @@ export default function Knowledge() {
               value={qInput}
               onChange={e => setQInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && runSearch()}
-              placeholder="输入关键词搜索会话内容…"
+              placeholder={t('knowledge.search.placeholder')}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             />
           </div>
@@ -191,7 +192,7 @@ export default function Knowledge() {
             className="shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
           >
             {searchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            搜索
+            {t('knowledge.search.btn')}
           </button>
         </div>
 
@@ -201,23 +202,23 @@ export default function Knowledge() {
 
         {searchLoading && (
           <div className="flex items-center gap-2 text-sm text-slate-500 py-6 justify-center">
-            <Loader2 className="w-4 h-4 animate-spin" /> 搜索中…
+            <Loader2 className="w-4 h-4 animate-spin" /> {t('knowledge.search.loading')}
           </div>
         )}
 
         {!searchLoading && !activeQuery && !searchError && (
-          <p className="text-sm text-slate-500 text-center py-4">输入关键词后点击搜索</p>
+          <p className="text-sm text-slate-500 text-center py-4">{t('knowledge.search.hint')}</p>
         )}
 
         {showSearchEmpty && (
-          <p className="text-sm text-slate-500 text-center py-6">未找到匹配的会话</p>
+          <p className="text-sm text-slate-500 text-center py-6">{t('knowledge.search.empty')}</p>
         )}
 
         {!searchLoading && searchResults && searchResults.length > 0 && (
           <ul className="space-y-4 mt-2">
             {searchResults.map(item => (
               <li key={item.sessionId} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                <p className="text-sm font-medium text-slate-200 mb-2">{highlightText(item.summary || '（无摘要）', activeQuery)}</p>
+                <p className="text-sm font-medium text-slate-200 mb-2">{highlightText(item.summary || t('knowledge.noSummary'), activeQuery)}</p>
                 <p className="text-[11px] text-slate-600 font-mono mb-2">{item.sessionId}</p>
                 <ul className="space-y-2">
                   {item.matches.map((m, idx) => (
@@ -234,7 +235,6 @@ export default function Knowledge() {
         )}
       </motion.section>
 
-      {/* 导出 */}
       <motion.section
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -245,9 +245,9 @@ export default function Knowledge() {
           <div className="p-2 rounded-lg bg-cyan-500/10">
             <Download className="w-5 h-5 text-cyan-400" />
           </div>
-          <h3 className="text-base font-semibold text-white">导出全部会话</h3>
+          <h3 className="text-base font-semibold text-white">{t('knowledge.export.title')}</h3>
         </div>
-        <p className="text-sm text-slate-500 mb-4">将知识库中的会话打包下载到本地。</p>
+        <p className="text-sm text-slate-500 mb-4">{t('knowledge.export.desc')}</p>
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
@@ -256,7 +256,7 @@ export default function Knowledge() {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {exporting === 'json' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            导出 JSON
+            {t('knowledge.export.json')}
           </button>
           <button
             type="button"
@@ -265,7 +265,7 @@ export default function Knowledge() {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {exporting === 'markdown' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            导出 Markdown
+            {t('knowledge.export.md')}
           </button>
         </div>
         {exportError && (
@@ -273,7 +273,6 @@ export default function Knowledge() {
         )}
       </motion.section>
 
-      {/* 导入 */}
       <motion.section
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -284,9 +283,9 @@ export default function Knowledge() {
           <div className="p-2 rounded-lg bg-emerald-500/10">
             <Upload className="w-5 h-5 text-emerald-400" />
           </div>
-          <h3 className="text-base font-semibold text-white">导入</h3>
+          <h3 className="text-base font-semibold text-white">{t('knowledge.import.title')}</h3>
         </div>
-        <p className="text-sm text-slate-500 mb-4">拖拽 JSON 到下方区域，或点击选择文件。</p>
+        <p className="text-sm text-slate-500 mb-4">{t('knowledge.import.desc')}</p>
         <div
           role="button"
           tabIndex={0}
@@ -308,12 +307,12 @@ export default function Knowledge() {
           />
           {importLoading ? (
             <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
-              <Loader2 className="w-5 h-5 animate-spin" /> 导入中…
+              <Loader2 className="w-5 h-5 animate-spin" /> {t('knowledge.import.loading')}
             </div>
           ) : (
             <>
               <Upload className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-              <p className="text-sm text-slate-400">松开以上传，或点击选择 .json</p>
+              <p className="text-sm text-slate-400">{t('knowledge.import.drop')}</p>
             </>
           )}
         </div>

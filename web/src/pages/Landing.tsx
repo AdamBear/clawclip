@@ -247,9 +247,9 @@ export default function Landing({ onEnterDemo }: Props) {
                 <div className="w-3 h-3 rounded-full bg-green-500/40" />
               </div>
               <div className="grid grid-cols-4 gap-3">
-                {[t('dashboard.status.running'), '¥3.42', '15 技能', '3 平台'].map((cell, i) => (
+                {[t('dashboard.status.running'), '¥3.42', `15 ${t('dashboard.stat.skillsSub')}`, `3 ${t('dashboard.stat.channelsLabel')}`].map((cell, i) => (
                   <div key={i} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-                    <div className="text-[10px] text-slate-600 mb-1">指标</div>
+                    <div className="text-[10px] text-slate-600 mb-1">—</div>
                     <div className="text-sm font-bold text-white">{cell}</div>
                   </div>
                 ))}

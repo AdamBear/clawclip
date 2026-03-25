@@ -1,8 +1,12 @@
 import { useState, lazy, Suspense, useCallback } from 'react'
 import Landing from './pages/Landing'
-import { LayoutDashboard, Play, Trophy, DollarSign, Puzzle, Store, ArrowLeft, Database, Medal } from 'lucide-react'
+import ErrorBoundary from './components/ErrorBoundary'
+import { LayoutDashboard, Play, Trophy, DollarSign, Puzzle, Store, ArrowLeft, Database, Medal, Menu, X } from 'lucide-react'
 import { cn } from './lib/cn'
 import { useI18n, LanguageSwitcher } from './lib/i18n'
+
+declare const __APP_VERSION__: string
+const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.1.0'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Replay = lazy(() => import('./pages/Replay'))
@@ -56,6 +60,12 @@ function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
     }
   })
   const [tourStep, setTourStep] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const navigateTab = useCallback((tab: Tab) => {
+    setActiveTab(tab)
+    setSidebarOpen(false)
+  }, [])
 
   const finishTour = useCallback(() => {
     try {
@@ -123,9 +133,17 @@ function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#0b1120]/80 backdrop-blur-xl border-b border-white/[0.08] px-6 py-3">
+      <header className="sticky top-0 z-50 bg-[#0b1120]/80 backdrop-blur-xl border-b border-white/[0.08] px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(v => !v)}
+              className="lg:hidden p-1.5 -ml-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+              aria-label="Toggle sidebar"
+            >
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
             <span className="text-xl">🍤</span>
             <div>
               <h1 className="text-base font-semibold tracking-tight text-white">{t('app.name')}</h1>
@@ -134,19 +152,33 @@ function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <span className="text-[10px] text-slate-600 font-mono">v0.8.5</span>
+            <span className="text-[10px] text-slate-600 font-mono">v{APP_VERSION}</span>
           </div>
         </div>
       </header>
 
-      <div className="flex max-w-screen-2xl mx-auto">
-        <nav className="w-56 shrink-0 sticky top-[49px] h-[calc(100vh-49px-33px)] border-r border-white/[0.08] py-4 px-3 flex flex-col">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex max-w-screen-2xl mx-auto relative">
+        <nav
+          className={cn(
+            'w-56 shrink-0 border-r border-white/[0.08] py-4 px-3 flex flex-col bg-[#0b1120] z-40 transition-transform duration-200',
+            'fixed top-[49px] h-[calc(100vh-49px)] lg:sticky lg:top-[49px] lg:h-[calc(100vh-49px-33px)] lg:translate-x-0',
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          )}
+        >
           <ul className="space-y-0.5 flex-1">
             {tabs.map(tab => (
               <li key={tab.id}>
                 <button
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => navigateTab(tab.id)}
                   className={cn(
                     'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150',
                     activeTab === tab.id
@@ -165,17 +197,19 @@ function AppShell({ onBackToLanding }: { onBackToLanding: () => void }) {
           </div>
         </nav>
 
-        <main className="flex-1 p-8 min-h-[calc(100vh-49px-33px)] overflow-auto">
-          <Suspense fallback={<TabFallback />}>
-            {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
-            {activeTab === 'replay' && <Replay />}
-            {activeTab === 'benchmark' && <Benchmark />}
-            {activeTab === 'leaderboard' && <Leaderboard />}
-            {activeTab === 'cost' && <CostMonitor />}
-            {activeTab === 'skills' && <SkillManager />}
-            {activeTab === 'templates' && <TemplateMarket />}
-            {activeTab === 'knowledge' && <Knowledge />}
-          </Suspense>
+        <main className="flex-1 p-4 sm:p-8 min-h-[calc(100vh-49px-33px)] overflow-auto w-0">
+          <ErrorBoundary>
+            <Suspense fallback={<TabFallback />}>
+              {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
+              {activeTab === 'replay' && <Replay />}
+              {activeTab === 'benchmark' && <Benchmark />}
+              {activeTab === 'leaderboard' && <Leaderboard />}
+              {activeTab === 'cost' && <CostMonitor />}
+              {activeTab === 'skills' && <SkillManager />}
+              {activeTab === 'templates' && <TemplateMarket />}
+              {activeTab === 'knowledge' && <Knowledge />}
+            </Suspense>
+          </ErrorBoundary>
         </main>
       </div>
     </div>

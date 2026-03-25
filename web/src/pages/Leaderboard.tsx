@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Medal, Loader2, AlertCircle, X } from 'lucide-react'
 import { cn } from '../lib/cn'
+import { useI18n } from '../lib/i18n'
 
 interface LeaderboardEntry {
   id: string
@@ -21,19 +22,6 @@ interface BenchmarkPreview {
   totalSessions: number
 }
 
-function formatRelativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  if (diff < 0) return '刚刚'
-  const min = Math.floor(diff / 60000)
-  if (min < 1) return '刚刚'
-  if (min < 60) return `${min} 分钟前`
-  const hours = Math.floor(min / 60)
-  if (hours < 24) return `${hours} 小时前`
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `${days} 天前`
-  return new Date(iso).toLocaleDateString('zh-CN')
-}
-
 const RANK_BADGE: Record<string, string> = {
   S: 'bg-gradient-to-r from-amber-400/25 to-yellow-500/20 text-amber-300 ring-1 ring-amber-400/40',
   A: 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30',
@@ -50,6 +38,7 @@ function PodiumMedal(position: number): string {
 }
 
 export default function Leaderboard() {
+  const { t, locale } = useI18n()
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [isDemo, setIsDemo] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -62,6 +51,27 @@ export default function Leaderboard() {
   const [submitting, setSubmitting] = useState(false)
   const [submitMsg, setSubmitMsg] = useState<string | null>(null)
 
+  const fmtRelative = useCallback((iso: string) => {
+    const diff = Date.now() - new Date(iso).getTime()
+    if (diff < 0) return t('leaderboard.time.now')
+    const min = Math.floor(diff / 60000)
+    if (min < 1) return t('leaderboard.time.now')
+    if (min < 60) return t('leaderboard.time.min').replace('{n}', String(min))
+    const hours = Math.floor(min / 60)
+    if (hours < 24) return t('leaderboard.time.hour').replace('{n}', String(hours))
+    const days = Math.floor(hours / 24)
+    if (days < 7) return t('leaderboard.time.day').replace('{n}', String(days))
+    const dateLocale =
+      locale === 'zh' ? 'zh-CN'
+      : locale === 'ja' ? 'ja-JP'
+      : locale === 'ko' ? 'ko-KR'
+      : locale === 'de' ? 'de-DE'
+      : locale === 'fr' ? 'fr-FR'
+      : locale === 'es' ? 'es-ES'
+      : 'en-US'
+    return new Date(iso).toLocaleDateString(dateLocale)
+  }, [t, locale])
+
   const loadList = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -69,19 +79,19 @@ export default function Leaderboard() {
       const res = await fetch('/api/leaderboard?limit=50')
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(typeof data.error === 'string' ? data.error : '加载失败')
+        setError(typeof data.error === 'string' ? data.error : t('leaderboard.error'))
         setEntries([])
         return
       }
       setEntries(Array.isArray(data.entries) ? data.entries : [])
       setIsDemo(Boolean(data.isDemo))
     } catch {
-      setError('网络错误')
+      setError(t('leaderboard.error.network'))
       setEntries([])
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadList()
@@ -98,7 +108,7 @@ export default function Leaderboard() {
       .then(async r => {
         const d = await r.json().catch(() => ({}))
         if (!r.ok) {
-          setPreviewErr(typeof d.error === 'string' ? d.error : '暂无评测数据')
+          setPreviewErr(typeof d.error === 'string' ? d.error : t('leaderboard.modal.noData'))
           return
         }
         setPreview({
@@ -108,14 +118,14 @@ export default function Leaderboard() {
           totalSessions: Number(d.totalSessions),
         })
       })
-      .catch(() => setPreviewErr('无法加载评测预览'))
+      .catch(() => setPreviewErr(t('leaderboard.modal.previewError')))
       .finally(() => setPreviewLoading(false))
   }
 
   const submit = async () => {
     const n = nickname.trim()
     if (n.length < 1 || n.length > 20) {
-      setSubmitMsg('请输入 1–20 个字符的昵称')
+      setSubmitMsg(t('leaderboard.modal.nickWarn'))
       return
     }
     setSubmitting(true)
@@ -128,18 +138,18 @@ export default function Leaderboard() {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setSubmitMsg(typeof data.error === 'string' ? data.error : '提交失败')
+        setSubmitMsg(typeof data.error === 'string' ? data.error : t('leaderboard.modal.fail'))
         return
       }
       const pos = typeof data.rank_position === 'number' ? data.rank_position : '?'
-      setSubmitMsg(`提交成功！你的当前排名：第 ${pos} 名`)
+      setSubmitMsg(t('leaderboard.modal.success').replace('{pos}', String(pos)))
       await loadList()
       setTimeout(() => {
         setModalOpen(false)
         setSubmitMsg(null)
       }, 1200)
     } catch {
-      setSubmitMsg('网络错误')
+      setSubmitMsg(t('leaderboard.error.network'))
     } finally {
       setSubmitting(false)
     }
@@ -149,10 +159,10 @@ export default function Leaderboard() {
     <div className="max-w-3xl mx-auto space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold text-white tracking-tight">排行榜</h2>
-          <p className="text-sm text-slate-500 mt-1">看看谁的龙虾最强</p>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">{t('leaderboard.title')}</h2>
+          <p className="text-sm text-slate-500 mt-1">{t('leaderboard.subtitle')}</p>
           {isDemo && entries.length > 0 && (
-            <p className="text-[11px] text-cyan-500/80 mt-2">当前为演示数据，提交分数后将保存到你的本地排行榜</p>
+            <p className="text-[11px] text-cyan-500/80 mt-2">{t('leaderboard.demo')}</p>
           )}
         </div>
         <button
@@ -160,14 +170,14 @@ export default function Leaderboard() {
           onClick={openModal}
           className="shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-[#3b82c4] via-cyan-500 to-teal-500 shadow-lg shadow-cyan-500/20 hover:opacity-95 transition-opacity"
         >
-          提交我的分数
+          {t('leaderboard.submit')}
         </button>
       </div>
 
       {loading && (
         <div className="flex items-center justify-center gap-2 py-20 text-slate-400">
           <Loader2 className="w-5 h-5 animate-spin" />
-          <span className="text-sm">加载中…</span>
+          <span className="text-sm">{t('leaderboard.loading')}</span>
         </div>
       )}
 
@@ -223,14 +233,14 @@ export default function Leaderboard() {
                       <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-slate-400 font-mono">
                         {e.topModel}
                       </span>
-                      <span className="text-[10px] text-slate-500">{e.totalSessions} 会话</span>
+                      <span className="text-[10px] text-slate-500">{e.totalSessions} {t('leaderboard.sessions')}</span>
                     </div>
                   </div>
                   <div className="text-right sm:ml-auto">
                     <div className="text-2xl sm:text-3xl font-bold tabular-nums bg-gradient-to-r from-cyan-200 to-teal-300 bg-clip-text text-transparent">
                       {Math.round(e.score)}
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{formatRelativeTime(e.submittedAt)}</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">{fmtRelative(e.submittedAt)}</div>
                   </div>
                 </div>
               </li>
@@ -240,7 +250,7 @@ export default function Leaderboard() {
       )}
 
       {!loading && !error && entries.length === 0 && (
-        <p className="text-center text-slate-500 text-sm py-12">暂无排行数据</p>
+        <p className="text-center text-slate-500 text-sm py-12">{t('leaderboard.empty')}</p>
       )}
 
       <AnimatePresence>
@@ -264,51 +274,51 @@ export default function Leaderboard() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Medal className="w-5 h-5 text-cyan-400" />
-                  <h3 className="text-lg font-semibold text-white">提交到排行榜</h3>
+                  <h3 className="text-lg font-semibold text-white">{t('leaderboard.modal.title')}</h3>
                 </div>
                 <button
                   type="button"
                   disabled={submitting}
                   onClick={() => setModalOpen(false)}
                   className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-white/10"
-                  aria-label="关闭"
+                  aria-label={t('leaderboard.modal.close')}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <label className="block text-xs text-slate-400 mb-1.5">昵称（1–20 字）</label>
+              <label className="block text-xs text-slate-400 mb-1.5">{t('leaderboard.modal.nickname')}</label>
               <input
                 type="text"
                 maxLength={20}
                 value={nickname}
                 onChange={ev => setNickname(ev.target.value)}
-                placeholder="例如：龙虾本虾"
+                placeholder={t('leaderboard.modal.nickPlaceholder')}
                 className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
               />
 
               <div className="mt-5 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
-                <p className="text-[11px] uppercase tracking-wide text-cyan-500/80 mb-2">当前评测预览</p>
+                <p className="text-[11px] uppercase tracking-wide text-cyan-500/80 mb-2">{t('leaderboard.modal.preview')}</p>
                 {previewLoading && (
                   <div className="flex items-center gap-2 text-slate-400 text-sm">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    读取中…
+                    {t('leaderboard.modal.reading')}
                   </div>
                 )}
                 {!previewLoading && previewErr && <p className="text-sm text-amber-400/90">{previewErr}</p>}
                 {!previewLoading && !previewErr && preview && (
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <span className="text-slate-500">综合分</span>
+                      <span className="text-slate-500">{t('leaderboard.modal.score')}</span>
                       <div className="text-xl font-bold text-white tabular-nums">{Math.round(preview.overallScore)}</div>
                     </div>
                     <div>
-                      <span className="text-slate-500">等级</span>
+                      <span className="text-slate-500">{t('leaderboard.modal.rank')}</span>
                       <div className="text-xl font-bold text-cyan-300">{preview.rank}</div>
                     </div>
                     <div className="col-span-2 text-slate-400 text-xs">
-                      模型 <span className="text-slate-300 font-mono">{preview.topModel}</span> ·{' '}
-                      {preview.totalSessions} 会话
+                      {t('leaderboard.modal.model')} <span className="text-slate-300 font-mono">{preview.topModel}</span> ·{' '}
+                      {preview.totalSessions} {t('leaderboard.sessions')}
                     </div>
                   </div>
                 )}
@@ -318,7 +328,7 @@ export default function Leaderboard() {
                 <p
                   className={cn(
                     'mt-3 text-sm',
-                    submitMsg.startsWith('提交成功') ? 'text-emerald-400' : 'text-rose-400',
+                    submitMsg.includes('✓') || submitMsg.includes(t('leaderboard.modal.success').split('！')[0]) ? 'text-emerald-400' : 'text-rose-400',
                   )}
                 >
                   {submitMsg}
@@ -332,7 +342,7 @@ export default function Leaderboard() {
                   onClick={() => setModalOpen(false)}
                   className="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-400 border border-white/10 hover:bg-white/5"
                 >
-                  取消
+                  {t('leaderboard.modal.cancel')}
                 </button>
                 <button
                   type="button"
@@ -340,7 +350,7 @@ export default function Leaderboard() {
                   onClick={submit}
                   className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-[#3b82c4] to-teal-500 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {submitting ? '提交中…' : '确认提交'}
+                  {submitting ? t('leaderboard.modal.submitting') : t('leaderboard.modal.confirm')}
                 </button>
               </div>
             </motion.div>

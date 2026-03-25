@@ -213,7 +213,7 @@ export default function Dashboard({ onNavigate }: Props) {
           {(status.ecosystemNotes?.length ?? 0) > 0 && (
             <div className="mt-2 pt-2 border-t border-white/[0.06]">
               <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1.5">
-                {locale === 'en' ? 'Ecosystem notes' : '生态与存储提示'}
+                {t('compat.ecosystem')}
               </p>
               <ul className="space-y-1.5 text-[11px] text-slate-500 leading-snug">
                 {status.ecosystemNotes!.map((n, i) => (
@@ -221,7 +221,7 @@ export default function Dashboard({ onNavigate }: Props) {
                     key={`${n.rootId ?? 'note'}-${i}`}
                     className={n.severity === 'warn' ? 'text-amber-200/85' : undefined}
                   >
-                    {locale === 'en' ? n.messageEn : n.messageZh}
+                    {locale === 'en' || locale === 'de' || locale === 'fr' || locale === 'es' ? n.messageEn : n.messageZh}
                   </li>
                 ))}
               </ul>
