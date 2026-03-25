@@ -63,7 +63,7 @@
 - 核心功能路线：会话回放 → 评测跑分 → 智能省钱
 - 技术栈：Express + TypeScript（后端）、React 18 + Vite + Tailwind（前端）
 - 结构：npm workspaces，server/ + web/
-- 目标用户：OpenClaw / ZeroClaw 等 AI Agent 框架的中文用户
+- 目标用户：OpenClaw / ZeroClaw 等 AI Agent 框架的全球用户
 - 用户是产品经理，不是技术人员，不要让用户判断技术细节是否足够
 
 ## 兼容与质量门禁

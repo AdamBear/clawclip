@@ -204,7 +204,7 @@ function layoutShell(title: string, inner: string): string {
 </head>
 <body>
   <div class="card">${inner}</div>
-  <div class="corner">QQ群 892555092</div>
+  <div class="corner">QQ 469906100</div>
 </body>
 </html>`;
 }

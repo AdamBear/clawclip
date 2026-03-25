@@ -16,10 +16,24 @@ import { getClawclipStateDir, getLobsterDataRoots } from './agent-data-root.js';
 import { sessionParser } from './session-parser.js';
 import { getModelPricing } from './pricing-fetcher.js';
 
-function suggestAlternative(pricePerMillion: number): { name: string; price: number } | null {
-  if (pricePerMillion >= 50) return { name: 'gpt-5.4-mini / claude-sonnet-4.6', price: 4.5 };
-  if (pricePerMillion >= 5) return { name: 'gpt-5-mini / deepseek-chat', price: 0.6 };
-  if (pricePerMillion >= 1) return { name: 'deepseek-chat / qwen-turbo', price: 0.42 };
+const ALT_TIERS: { threshold: number; models: string[] }[] = [
+  { threshold: 50, models: ['gpt-5.4-mini', 'claude-sonnet-4.6', 'gemini-2.5-pro'] },
+  { threshold: 5, models: ['gpt-5-mini', 'deepseek-chat', 'gemini-2.5-flash'] },
+  { threshold: 1, models: ['deepseek-chat', 'qwen-turbo', 'yi-lightning'] },
+];
+
+function suggestAlternative(
+  pricePerMillion: number,
+  pricing: Record<string, number>,
+): { name: string; price: number } | null {
+  for (const tier of ALT_TIERS) {
+    if (pricePerMillion < tier.threshold) continue;
+    const best = tier.models
+      .map(m => ({ m, p: pricing[m] ?? Infinity }))
+      .filter(x => x.p < pricePerMillion)
+      .sort((a, b) => a.p - b.p)[0];
+    if (best) return { name: best.m, price: best.p };
+  }
   return null;
 }
 
@@ -437,7 +451,7 @@ export class CostParser {
 
     for (const [model, data] of Object.entries(models)) {
       const pricePerMillion = this.modelPricing[model] ?? 5.0;
-      const alt = suggestAlternative(pricePerMillion);
+      const alt = suggestAlternative(pricePerMillion, this.modelPricing);
       if (!alt) continue;
 
       const altCost = data.tokens * alt.price / 1_000_000;

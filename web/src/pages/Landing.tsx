@@ -366,7 +366,7 @@ export default function Landing({ onEnterDemo }: Props) {
           </div>
 
           <p className="text-xs text-slate-400">
-            掠蓝蓝蓝 出品 · 虾片 ClawClip 🍤
+            掠蓝 出品 · 虾片 ClawClip 🍤
           </p>
         </div>
       </footer>
