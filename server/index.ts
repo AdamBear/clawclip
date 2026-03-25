@@ -12,8 +12,10 @@ import shareRouter from './routes/share.js';
 import analyticsRouter from './routes/analytics.js';
 import knowledgeRouter from './routes/knowledge.js';
 import leaderboardRouter from './routes/leaderboard.js';
+import { initPricingFetcher } from './services/pricing-fetcher.js';
 
 const app = express();
+initPricingFetcher();
 const PORT = process.env.PORT || 8080;
 
 app.use(express.json());

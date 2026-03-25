@@ -10,34 +10,40 @@ import {
   CostInsight,
   SavingSuggestion,
   SavingsReport,
-  DEFAULT_MODEL_PRICING,
   DEFAULT_BUDGET_CONFIG,
 } from '../types/index.js';
 import { getClawclipStateDir, getLobsterDataRoots } from './agent-data-root.js';
 import { sessionParser } from './session-parser.js';
+import { getModelPricing } from './pricing-fetcher.js';
 
 function suggestAlternative(pricePerMillion: number): { name: string; price: number } | null {
-  if (pricePerMillion >= 50) return { name: 'gpt-4o / claude-sonnet-4', price: 8.0 };
-  if (pricePerMillion >= 5) return { name: 'gpt-4o-mini / claude-3.5-haiku', price: 1.0 };
-  if (pricePerMillion >= 1) return { name: 'deepseek-chat', price: 0.1 };
+  if (pricePerMillion >= 50) return { name: 'gpt-5.4-mini / claude-sonnet-4.6', price: 4.5 };
+  if (pricePerMillion >= 5) return { name: 'gpt-5-mini / deepseek-chat', price: 0.6 };
+  if (pricePerMillion >= 1) return { name: 'deepseek-chat / qwen-turbo', price: 0.42 };
   return null;
 }
 
 export class CostParser {
   private static readonly CHEAP_MODELS = [
-    'deepseek-chat', 'deepseek-coder', 'qwen-turbo', 'gpt-4o-mini',
-    'claude-3.5-haiku', 'claude-3-haiku', 'gpt-4.1-mini', 'minimax-01', 'glm-4-flash',
+    'deepseek-chat', 'deepseek-coder', 'qwen-turbo', 'qwen3.5-flash',
+    'gpt-4o-mini', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5.4-nano',
+    'claude-3.5-haiku', 'claude-3-haiku', 'claude-haiku-4.5',
+    'gemini-2.5-flash-lite', 'gemini-2.0-flash',
+    'glm-4-flash', 'glm-4.5-flash', 'glm-4.7-flash',
+    'minimax-01', 'yi-lightning', 'doubao-lite', 'hunyuan-lite',
   ];
 
   private config: BudgetConfig;
-  private modelPricing: Record<string, number>;
   private usageCache: { at: number; data: TokenUsage[] } | null = null;
   private static readonly CACHE_MS = 3500;
+
+  private get modelPricing(): Record<string, number> {
+    return getModelPricing();
+  }
 
   constructor() {
     this.ensureDirectories();
     this.config = this.loadConfig();
-    this.modelPricing = DEFAULT_MODEL_PRICING;
   }
 
   private getCacheDir(): string {
